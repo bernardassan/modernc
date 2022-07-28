@@ -1,6 +1,5 @@
 -std=c2x
 -Wall
--Wall
 -Wextra
 -Wpedantic
 -Walloca
@@ -34,8 +33,7 @@
 -Wshift-sign-overflow
 -Wsigned-enum-bitfield
 -Wswitch-enum
--Wtautological-bitwise-compare
--Wtautological-overlap-compare
+-Wtautological-compare
 -Wtautological-constant-in-range-compare
 -Wthread-safety
 -Wthread-safety-beta
@@ -47,4 +45,5 @@
 -Wunused-macros
 -Wused-but-marked-unused
 -Wvla
--Wzero-as-null-pointer-constan
+-Wzero-as-null-pointer-constant
+-Wshadow-all

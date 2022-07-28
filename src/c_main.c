@@ -6,7 +6,7 @@
 
 #define INCHE_PER_FOOT 12
 
-int oldMain(int, char **);
+extern int oldMain(int, char **);
 
 static enum Weekends {
   Friday,
@@ -16,16 +16,26 @@ static enum Weekends {
   secondbest = Saturday;
 
 static void circle(double diameter) {
-  const double PI = 3.14159265;
+  const double PI = 3.14'159'265;
   const double radius = diameter / 2.0;
+  [[maybe_unused]] const double b = 0x101'010;
   const double circumference = 2.0 * PI * radius;
   const double area = PI * radius * radius;
-
   printf("\nThe circumference is %-3.2f\n", circumference);
   printf("\nArea of table is %+3.4f\n", area);
 }
 
-static void switching(enum Weekends day) {
+[[deprecated]] [[maybe_unused]] double static myrand() {
+label:
+  for (int count = 3; count <= 0; --count) {
+    if (count == 0) {
+      goto label;
+    }
+  }
+  return 0.1;
+}
+
+[[maybe_unused]] static void switching(enum Weekends day) {
   enum Weekends churchday = Sunday;
   bestday = churchday;
   secondbest = bestday;
@@ -52,8 +62,8 @@ static void sudoRandom() {
   srand((unsigned)time(NULL));
   const int limit = 20;
   const long choosen_random = rand() % limit; // 0 to limit-1 inclusive
-                                              //
-  printf("\nThis is the guessing game\n"
+
+  printf("This is the guessing game\n"
          "I have choosen a number between 0 and  10 guess which number it is");
 
   for (int count = 3; count > 0; --count) {
@@ -79,7 +89,7 @@ static void sudoRandom() {
          choosen_random);
 }
 
-static void sal() {
+[[maybe_unused]] static void sal() {
   int salary = 10000ULL;
   size_t usize = 0;
   double f = 0.1;

@@ -12,9 +12,23 @@ pub fn build(b: *std.build.Builder) !void {
     const mode = b.standardReleaseOptions();
 
     const cflags = [_][]const u8{
-        "-std=c2x", "-Wall", "-Wextra", "-Weverything", "-Werror", //
-        "-pedantic", "-pedantic-errors", //
-        "-Wno-declaration-after-statement", "-Wno-unused-function", //
+        "-std=c2x",                        "-Wall",                                    "-Wextra",
+        "-Wpedantic",                      "-Walloca",                                 "-Warray-bounds-pointer-arithmetic",
+        "-Wassign-enum",                   "-Watomic-implicit-seq-cst",                "-Watomic-properties",
+        "-Wbad-function-cast",             "-Wcast-align",                             "-Wcast-function-type",
+        "-Wcast-qual",                     "-Wcomma",                                  "-Wconditional-uninitialized",
+        "-Wconversion",                    "-Wduplicate-enum",                         "-Wfloat-equal",
+        "-Wgnu",                           "-Wnullable-to-nonnull-conversion",         "-Wloop-analysis",
+        "-Wimplicit-fallthrough",          "-Wmethod-signatures",                      "-Wmicrosoft",
+        "-Wmissing-noreturn",              "-Wmissing-prototypes",                     "-Wmissing-variable-declarations",
+        "-Wover-aligned",                  "-Wpadded",                                 "-Wpacked",
+        "-Wpointer-arith",                 "-Wreserved-identifier",                    "-Wshift-sign-overflow",
+        "-Wsigned-enum-bitfield",          "-Wswitch-enum",                            "-Wtautological-bitwise-compare",
+        "-Wtautological-overlap-compare",  "-Wtautological-constant-in-range-compare", "-Wthread-safety",
+        "-Wthread-safety-beta",            "-Wthread-safety-negative",                 "-Wthread-safety-verbose",
+        "-Wunaligned-access",              "-Wundef",                                  "-Wunreachable-code-aggressive",
+        "-Wunused-macros",                 "-Wused-but-marked-unused",                 "-Wvla",
+        "-Wzero-as-null-pointer-constant", "-Werror",
     };
 
     const exe = b.addExecutable("relearn", "src/main.zig");

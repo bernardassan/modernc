@@ -2,11 +2,12 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #define INCHE_PER_FOOT 12
 
-extern int oldMain(int, char **);
+extern int oldMain(int argc, char const * [argc + 1]);
 
 static enum Weekends {
   Friday,
@@ -57,7 +58,7 @@ label:
   }
 }
 
-static void sudoRandom() {
+[[maybe_unused]] static void sudoRandom() {
   // randomise seed
   srand((unsigned)time(NULL));
   const int limit = 20;
@@ -103,7 +104,59 @@ static void sudoRandom() {
   circle(diameter);
 }
 
-int oldMain(int, char **) {
-  sudoRandom();
+[[maybe_unused]] static void array() {
+  const char sayings[][32] = {
+      "Manners maketh man.",
+      "Many hands make light work.",
+      "Too many cooks spoil the broth.",
+  };
+  for (unsigned int i = 0; i < sizeof(sayings) / sizeof(sayings[0]); ++i)
+    printf("%s\n", sayings[i]);
+
+  union A {
+    int a;
+    double c;
+  };
+
+  [[maybe_unused]] union A b = {.a = 32};
+  const double arr[5] = {
+      [0] = 9.0,
+      [1] = 7.0,
+      [4] = 3.0E+23,
+      [3] = 0.00007,
+  };
+
+  for (size_t index = 0; index < sizeof(arr) / sizeof(arr[0]); ++index) {
+    printf("elemets %zu is %g,\nits square is %g\n", index, arr[index],
+           arr[index] * arr[index]);
+  }
+}
+
+typedef struct {
+  char arr[3];
+} arr;
+
+[[gnu::const, gnu::nonnull(1)]] static arr saysomething(char str[]);
+
+static arr saysomething(char str[]) {
+  size_t index = 1;
+  size_t value = 1;
+  while (str[value]) {
+    if (str[value] != str[value - 1]) {
+      str[index] = str[value];
+      index++;
+    }
+    value++;
+  }
+  str[index] = '\0';
+  arr val = {.arr = {}};
+  return val;
+}
+
+int oldMain(int argc [[maybe_unused]],
+            char const *argv [[maybe_unused]][argc + 1]) {
+  char input[] = "pebbbabbbles";
+  arr _ [[maybe_unused]] = saysomething(input);
+  puts(input);
   return EXIT_SUCCESS;
 }

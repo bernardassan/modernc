@@ -26,7 +26,7 @@ static void circle(double diameter) {
   printf("\nArea of table is %+3.4f\n", area);
 }
 
-[[deprecated]] [[maybe_unused]] double static myrand() {
+[[deprecated, maybe_unused]] static double myrand() {
 label:
   for (int count = 3; count <= 0; --count) {
     if (count == 0) {
@@ -123,11 +123,11 @@ label:
       [0] = 9.0,
       [1] = 7.0,
       [4] = 3.0E+23,
-      [3] = 0.00007,
+      [3] = 0.000'07,
   };
 
-  for (size_t index = 0; index < sizeof(arr) / sizeof(arr[0]); ++index) {
-    printf("elemets %zu is %g,\nits square is %g\n", index, arr[index],
+  for (size_t index = 0; index < sizeof(arr) / sizeof(arr[0]); index++) {
+    printf("elemets %zu is %g,\tits square is %g\n", index, arr[index],
            arr[index] * arr[index]);
   }
 }
@@ -156,6 +156,7 @@ static arr saysomething(char str[]) {
 int oldMain(int argc [[maybe_unused]],
             char const *argv [[maybe_unused]][argc + 1]) {
   char input[] = "pebbbabbbles";
+  array();
   arr _ [[maybe_unused]] = saysomething(input);
   puts(input);
   return EXIT_SUCCESS;

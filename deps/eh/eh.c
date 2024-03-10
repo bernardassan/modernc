@@ -23,9 +23,9 @@ _Thread_local static uint32_t out_of_memory;
 // end::declarations[]
 
 // tag::try_sprintf[]
-[[gnu::format(printf, 4, 0)]] static bool
-try_vsprintf(char **buffer [[gnu::nonnull]], char const *const buffer_end,
-             size_t *chars, const char *format, va_list ap) {
+[[gnu::format(printf, 4, 0), gnu::nonnull]] bool static try_vsprintf(
+    char *buffer[], char const *const buffer_end, size_t *chars,
+    const char *format, va_list ap) {
   size_t sz = (size_t)(buffer_end - *buffer);
   int rc = vsnprintf(*buffer, sz, format, ap);
   if (rc < 0 ||         // encoding

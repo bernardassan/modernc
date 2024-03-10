@@ -2,6 +2,7 @@ const std = @import("std");
 const Build = std.Build;
 const CSourceFile = Build.Module.CSourceFile;
 const LazyPath = Build.LazyPath;
+const Query = std.Target.Query;
 const Array = std.BoundedArray([]const u8, 128);
 
 pub fn build(b: *std.Build) !void {
@@ -9,14 +10,18 @@ pub fn build(b: *std.Build) !void {
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
     // for restricting supported target set are available.
-    const target = b.standardTargetOptions(.{});
+    const target = b.standardTargetOptions(.{ .default_target = try Query.parse(.{ .arch_os_abi = "x86_64-linux-musl" }) });
 
     // Standard release options allow the person running `zig build` to select
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const optimize = b.standardOptimizeOption(.{});
 
     const exe = b.addExecutable(.{ .name = "relearn", .root_source_file = .{ .path = "src/main.zig" }, .target = target, .optimize = optimize });
-    exe.root_module.addCMacro("_POSIX_C_SOURCE", "200809L");
+
+    // NOTE: https://man7.org/linux/man-pages/man7/feature_test_macros.7.html
+    // https://stackoverflow.com/questions/5378778/what-does-d-xopen-source-do-mean
+    // https://pubs.opengroup.org/onlinepubs/9699919799/
+    exe.root_module.addCMacro("_XOPEN_SOURCE ", "700");
     const c_sources = try findCfiles(b.allocator, "src/");
 
     var array = Array.init(0) catch unreachable;
@@ -25,7 +30,7 @@ pub fn build(b: *std.Build) !void {
     exe.root_module.addCSourceFiles(.{ .files = c_sources, .flags = cflags });
 
     const eh = b.addStaticLibrary(.{ .name = "eh", .target = target, .optimize = optimize });
-    eh.root_module.addCMacro("_POSIX_C_SOURCE", "200809L");
+    eh.root_module.addCMacro("_XOPEN_SOURCE ", "700");
     const eh_source = CSourceFile{
         .file = .{ .path = "./deps/eh/eh.c" },
         .flags = cflags,
@@ -57,7 +62,7 @@ pub fn build(b: *std.Build) !void {
     const exe_tests = b.addTest(.{ .root_source_file = .{ .path = "test/test.zig" }, .target = target });
     const snow_source = LazyPath{ .path = "./deps/snow/snow" };
     exe_tests.root_module.addIncludePath(snow_source);
-    exe_tests.root_module.addCMacro("_POSIX_C_SOURCE", "200809L");
+    exe_tests.root_module.addCMacro("_XOPEN_SOURCE ", "700");
     exe_tests.root_module.addCMacro("SNOW_ENABLED", "1");
     exe_tests.linkLibrary(eh);
     const c_test_sources = try findCfiles(b.allocator, "test/");

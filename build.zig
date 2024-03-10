@@ -2,24 +2,7 @@ const std = @import("std");
 const Build = std.Build;
 const CSourceFile = Build.Module.CSourceFile;
 const LazyPath = Build.LazyPath;
-
-const debug_mode = [_][]const u8{ "-g", "-fdebug-macro" };
-
-// TODO: load flags from compile_flags
-const cflags = [_][]const u8{
-    "-std=c2x", "-Weverything", "-Werror", "-Wall", "-Wextra", //
-    "-Wpedantic", "-Wno-declaration-after-statement", //
-    "-pedantic-errors", "-Wno-pre-c2x-compat", //
-};
-
-const deps = struct {
-    const snow = LazyPath{ .path = "./deps/snow/snow.h" };
-
-    const eh = CSourceFile{
-        .file = .{ .path = "./deps/eh/eh.c" },
-        .flags = &cflags,
-    };
-};
+const Array = std.BoundedArray([]const u8, 128);
 
 pub fn build(b: *std.Build) !void {
     // Standard target options allows the person running `zig build` to choose
@@ -35,11 +18,19 @@ pub fn build(b: *std.Build) !void {
     const exe = b.addExecutable(.{ .name = "relearn", .root_source_file = .{ .path = "src/main.zig" }, .target = target, .optimize = optimize });
     exe.root_module.addCMacro("_POSIX_C_SOURCE", "200809L");
     const c_sources = try findCfiles(b.allocator, "src/");
-    exe.root_module.addCSourceFiles(.{ .files = c_sources, .flags = &cflags });
+
+    var array = Array.init(0) catch unreachable;
+    const cflags = loadCompileFlags("compile_flags.txt", &array);
+
+    exe.root_module.addCSourceFiles(.{ .files = c_sources, .flags = cflags });
 
     const eh = b.addStaticLibrary(.{ .name = "eh", .target = target, .optimize = optimize });
     eh.root_module.addCMacro("_POSIX_C_SOURCE", "200809L");
-    eh.root_module.addCSourceFile(deps.eh);
+    const eh_source = CSourceFile{
+        .file = .{ .path = "./deps/eh/eh.c" },
+        .flags = cflags,
+    };
+    eh.root_module.addCSourceFile(eh_source);
     eh.root_module.addIncludePath(.{ .path = "./deps/eh" });
     eh.linkLibC();
     exe.linkLibrary(eh);
@@ -64,13 +55,28 @@ pub fn build(b: *std.Build) !void {
     run_step.dependOn(&run_cmd.step);
 
     const exe_tests = b.addTest(.{ .root_source_file = .{ .path = "test/test.zig" }, .target = target });
-    exe_tests.addIncludePath(deps.snow);
+    const snow_source = LazyPath{ .path = "./deps/snow/snow" };
+    exe_tests.root_module.addIncludePath(snow_source);
+    exe_tests.root_module.addCMacro("_POSIX_C_SOURCE", "200809L");
+    exe_tests.root_module.addCMacro("SNOW_ENABLED", "1");
     exe_tests.linkLibrary(eh);
     const c_test_sources = try findCfiles(b.allocator, "test/");
-    exe_tests.addCSourceFiles(.{ .files = c_test_sources, .flags = &.{} });
+    exe_tests.root_module.addCSourceFiles(.{ .files = c_test_sources, .flags = &.{"-std=c2x"} });
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&exe_tests.step);
+}
+
+fn loadCompileFlags(comptime path: []const u8, array: *Array) []const []const u8 {
+    const compile_flags = @embedFile(path);
+    var itr = std.mem.splitScalar(u8, compile_flags, '\n');
+    while (itr.next()) |line| {
+        if (line.len == 0) break;
+        array.appendAssumeCapacity(line);
+    }
+    //use -Werror for compilation only
+    array.appendAssumeCapacity("-Werror");
+    return array.constSlice();
 }
 
 // Search for all C/C++ files in `src` and add them

@@ -45,7 +45,7 @@
 [[gnu::always_inline]] void f(char *a [[maybe_unused]]) {}
 
 [[maybe_unused]] static int macro_main() {
-  char *p = "Educba";
+  char const *p = "Educba";
   int a = 20;
   printf(" This use char datatype %s \n", INCREMENT(p));
   printf("\n This uses int datatype %d\n", INCREMENT(a));

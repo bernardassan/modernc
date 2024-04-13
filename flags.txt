@@ -1,3 +1,4 @@
+# https://best.openssf.org/Compiler-Hardening-Guides/Compiler-Options-Hardening-Guide-for-C-and-C++.html
 # https://caiorss.github.io/C-Cpp-Notes/compiler-flags-options.html
 # https://interrupt.memfault.com/blog/best-and-worst-gcc-clang-compiler-flags
 # https://lefticus.gitbooks.io/cpp-best-practices/content/02-Use_the_Tools_Available.html
@@ -59,4 +60,7 @@ extract from above relevant options
 -Wvla
 -Wzero-as-null-pointer-constant
 -std=c2x
+
+# GCC Instrumentation
+-fhardened -fsanitize=address,leak,undefined -fanalyzer
 

@@ -87,6 +87,9 @@ pub fn build(b: *std.Build) !void {
 }
 
 fn loadCompileFlags(comptime path: []const u8, array: *Array) []const []const u8 {
+    //use -Werror for compilation only
+    array.appendAssumeCapacity("-Werror");
+
     const compile_flags = @embedFile(path);
     var itr = std.mem.splitScalar(u8, compile_flags, '\n');
     while (itr.next()) |line| {
@@ -94,8 +97,6 @@ fn loadCompileFlags(comptime path: []const u8, array: *Array) []const []const u8
         if (line[0] == '#') continue; // A comment
         array.appendAssumeCapacity(line);
     }
-    //use -Werror for compilation only
-    array.appendAssumeCapacity("-Werror");
     return array.constSlice();
 }
 
@@ -120,6 +121,5 @@ fn findCfiles(allocator: std.mem.Allocator, comptime parent_directory: []const u
             try sources.append(try std.fmt.allocPrint(allocator, parent_directory ++ "/{s}", .{entry.path}));
         }
     }
-
     return sources.items;
 }

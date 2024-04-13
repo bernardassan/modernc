@@ -1,10 +1,13 @@
+# remove after auto and u8 features are available in clang -Wno-c++98-compat -Wno-gnu-auto-type
 -DSNOW_ENABLED
 -D_XOPEN_SOURCE=700
 -Wall
 -Weverything
 -Wextra
+-Wno-c++98-compat
 -Wno-declaration-after-statement
 -Wno-extra-semi-stmt
+-Wno-gnu-auto-type
 -Wno-gnu-zero-variadic-macro-arguments
 -Wno-pre-c2x-compat
 -Wno-unsafe-buffer-usage

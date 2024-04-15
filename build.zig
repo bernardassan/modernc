@@ -5,6 +5,7 @@ const LazyPath = Build.LazyPath;
 const Query = std.Target.Query;
 const Array = std.BoundedArray([]const u8, 128);
 
+//TODO: Implement using gcc and or clang when they are available since they offer sanitizer options and static analysis
 pub fn build(b: *std.Build) !void {
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
@@ -29,6 +30,8 @@ pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
 
     const exe = b.addExecutable(.{ .name = "relearn", .root_source_file = .{ .path = "src/main.zig" }, .target = target, .optimize = optimize });
+    exe.use_llvm = false;
+    exe.use_lld = false;
 
     // NOTE: https://man7.org/linux/man-pages/man7/feature_test_macros.7.html
     // https://stackoverflow.com/questions/5378778/what-does-d-xopen-source-do-mean
@@ -42,6 +45,8 @@ pub fn build(b: *std.Build) !void {
     exe.root_module.addCSourceFiles(.{ .files = c_sources, .flags = cflags });
 
     const eh = b.addStaticLibrary(.{ .name = "eh", .target = target, .optimize = optimize });
+    eh.use_llvm = false;
+    eh.use_lld = false;
     eh.root_module.addCMacro("_XOPEN_SOURCE", "700");
     const eh_source = CSourceFile{
         .file = .{ .path = "./deps/eh/eh.c" },
@@ -57,10 +62,12 @@ pub fn build(b: *std.Build) !void {
     b.installArtifact(exe);
 
     switch (optimize) {
+        // TODO: set release options
         .ReleaseFast => {
             eh.root_module.addCMacro("_FORTIFY_SOURCE", "3");
             exe.root_module.addCMacro("_FORTIFY_SOURCE", "3");
         },
+        // TODO: enable setting debug options for easy debugin
         else => {},
     }
 

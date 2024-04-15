@@ -1,4 +1,4 @@
-#include <assert.h>
+#include <stdint.h>
 #define C23_FALLBACK_SILENT
 #include "c23-fallback.h"
 #include <complex.h>
@@ -13,8 +13,12 @@
 #ifndef __STDC_VERSION_STDBIT_H__
 #error "stdbit.h is required for this module"
 #endif
+constexpr auto SENTINAL = 1;
 
-enum corvid {
+extern int oldMain(int argc, char const * [argc + SENTINAL]);
+extern void use_time();
+
+enum corvid : uint8_t {
   chough,
   magpie,
   raven,
@@ -33,8 +37,6 @@ constexpr char CORVID_NAME[corvid_num][8] = {
 // insque
 // tsearch
 #define INCHE_PER_FOOT 12
-
-extern int oldMain(int argc, char const * [argc + 1]);
 
 static enum Weekends {
   Friday,
@@ -59,7 +61,8 @@ static void enumerations() {
   uint32_t n = 78;
   int64_t big = (-UINT64_C(1)) >> 1; // Same value as INT64_MAX
   auto alongfloat [[maybe_unused]] = 10.0l;
-  auto complex_long [[maybe_unused]] = 3.0L + I;
+  auto complex_long [[maybe_unused]] =
+      creal((complex double)3.0L) + cimag((complex double)I);
   double complex num [[maybe_unused]] = 3.0;
   double C [[maybe_unused]][] = {
       [0] = 6,
@@ -228,12 +231,65 @@ static arr saysomething(char str[]) {
   return val;
 }
 
+static void swap_doubles(double a[static 2]) {
+  double tmp = a[0];
+  a[0] = a[1];
+  a[1] = tmp;
+}
+
+typedef struct birds {
+  char const *jay;
+  char const *magpie;
+  char const *raven;
+  char const *chough;
+} birds;
+
+static birds const bird [[maybe_unused]] = {
+    .jay = "jay",
+    .magpie = "magpie",
+    .raven = "raven",
+    .chough = "chough",
+};
+
+// [[unsequenced=>const]] [[reproducible=>pure]] attributes is currently not in
+// clang 18 or gcc 14
+inline size_t gcd2 [[gnu::const]] (size_t a, size_t b) {
+  assert(a <= b);
+  if (!a)
+    return b;
+  size_t rem = b % a;
+  return gcd2(rem, a);
+}
+
 int oldMain(int argc [[maybe_unused]],
-            char const *argv [[maybe_unused]][argc + 1]) {
+            char const *argv [[maybe_unused]][argc + SENTINAL]) {
+  size_t len = strlen(argv[0]) + SENTINAL;
+  char name[len] = {};
+  auto const program_name = argv[0];
+
+  auto result = memccpy(name, program_name, '\0', len);
+  if (!result) {
+    fprintf(stderr,
+            "Error result '%s': The character %#X was not found in the string "
+            "'%s'",
+            (char *)result, (uint32_t)'\0', program_name);
+    return false;
+  }
+  if (!strncmp(name, program_name, len)) {
+    printf("\nprogram name '%s' has been successfully copied\n", name);
+  } else {
+    printf("copying argv[0] '%s' lead to a different string '%s'", argv[0],
+           name);
+  }
   char input[] = "pebbbabbbles";
   array();
   enumerations();
   arr _ [[maybe_unused]] = saysomething(input);
   puts(input);
+
+  double A[2] = {3.1, 4.5};
+  swap_doubles(A);
+  printf("A[0] = %g, A[1] = %g\n", A[0], A[1]);
+  use_time();
   return EXIT_SUCCESS;
 }

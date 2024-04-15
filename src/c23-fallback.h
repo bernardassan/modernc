@@ -107,13 +107,10 @@
  **/
 
 #include <limits.h>
-#include <inttypes.h>
-#include <setjmp.h>
 #include <signal.h>
 #include <stdalign.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>

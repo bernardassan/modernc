@@ -1,4 +1,5 @@
-# remove after auto and u8 features are available in clang -Wno-c++98-compat -Wno-gnu-auto-type
+# remove after upgrade to clang 18~ -Wno-c++98-compat -Wno-gnu-auto-type -Wno-fixed-enum-extension
+-Wno-fixed-enum-extension
 -DSNOW_ENABLED
 -D_XOPEN_SOURCE=700
 -Wall

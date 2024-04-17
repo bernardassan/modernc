@@ -61,6 +61,5 @@ extract from above relevant options
 -Wzero-as-null-pointer-constant
 -std=c2x
 
-# GCC Instrumentation
--fhardened -fsanitize=address,leak,undefined -fanalyzer
-
+# GCC Debug Mode Options
+-std=c23 -Wall -Wextra -Wstrict-aliasing=1 -pedantic-errors -fhardened -fsanitize=address,leak,undefined -fanalyzer -fstrict-aliasing -Og

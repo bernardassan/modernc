@@ -2,7 +2,7 @@
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
-
+// https://stackoverflow.com/questions/4322926/what-exactly-is-an-aligned-pointer
 static int square(int const num[restrict const static 1],
                   int const num2[restrict const static 1]) {
   return num[0] * num2[0];
@@ -65,11 +65,16 @@ static uint32_t swap_words_p(uint32_t arg) {
   return (arg);
 }
 
+static size_t len(int array[static const 4]) {
+  return sizeof(array) / sizeof array[0];
+}
+
 int main() {
   int val[1] = {1};
   square(val, val);
   int array[] = {1, 2, 3, 4, 5};
-  printf("%lu\n", sizeof(array) / sizeof(int)); // print 4
+  printf("size in block scope %ld while parameter scope %ld\n",
+         sizeof(array) / sizeof(int), len(array)); // pirnts 4 <-> 2
 
   char const *const p = "hello";
   char const q[] = "hello";

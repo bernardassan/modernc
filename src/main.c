@@ -1,6 +1,7 @@
 #include <stdint.h>
 #define C23_FALLBACK_SILENT
 #include "c23-fallback.h"
+#include <assert.h>
 #include <complex.h>
 #include <stdbit.h>
 #include <stdbool.h>
@@ -26,6 +27,18 @@ enum corvid : uint8_t {
   corvid_num,
 };
 
+enum vehicle { bus, airplane, train, car, horse, feet };
+
+static enum vehicle choose(char arg) {
+  return arg == 'B'   ? bus
+         : arg == 'A' ? airplane
+         : arg == 'T' ? train
+         : arg == 'C' ? car
+         : arg == 'H' ? horse
+                      : feet;
+}
+
+static int use_choose() { assert(choose('H') == horse && choose('F') == feet); }
 constexpr char CORVID_NAME[corvid_num][8] = {
     [chough] = "chough",
     [raven] = "raven",
@@ -61,8 +74,8 @@ static void enumerations() {
   uint32_t n = 78;
   int64_t big = (-UINT64_C(1)) >> 1; // Same value as INT64_MAX
   auto alongfloat [[maybe_unused]] = 10.0l;
-  auto complex_long [[maybe_unused]] =
-      creal((complex double)3.0L) + cimag((complex double)I);
+  // cimagl for printing I
+  auto complex_long [[maybe_unused]] = creall((complex long double)3.0L) + I;
   double complex num [[maybe_unused]] = 3.0;
   double C [[maybe_unused]][] = {
       [0] = 6,
@@ -196,7 +209,7 @@ label:
     double c;
   };
 
-  [[maybe_unused]] union A b = {.a = 32};
+  union A b [[maybe_unused]] = {.a = 32};
   const double arr[5] = {
       [0] = 9.0,
       [1] = 7.0,

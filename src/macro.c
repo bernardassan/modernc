@@ -9,6 +9,13 @@
 // matrix_type(4, 4)
 // deprecated("message") || [[deprecated("reason")]]
 // noreturn
+
+#define ERROR_RETURN(CODE)                                                     \
+  do {                                                                         \
+    if ((CODE))                                                                \
+      return -1;                                                               \
+  } while (false)
+
 #define MAX 100
 
 #define ADD(p, q) ((p) + (q))

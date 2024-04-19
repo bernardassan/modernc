@@ -62,4 +62,4 @@ extract from above relevant options
 -std=c2x
 
 # GCC Debug Mode Options
--std=c23 -Wall -Wextra -Wstrict-aliasing=1 -pedantic-errors -fhardened -fsanitize=address,leak,undefined -fanalyzer -fstrict-aliasing -Og
+-std=c23 -Wall -Wextra -pedantic-errors -Warray-bounds=3 -Wstrict-aliasing=1 -fstrict-aliasing -Wstrict-flex-arrays=3 -fstrict-flex-arrays -fhardened -fsanitize=address,leak,undefined -fanalyzer -Og

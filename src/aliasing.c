@@ -2,7 +2,7 @@
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
-// https://stackoverflow.com/questions/4322926/what-exactly-is-an-aligned-pointer
+
 static int square(int const num[restrict const static 1],
                   int const num2[restrict const static 1]) {
   return num[0] * num2[0];

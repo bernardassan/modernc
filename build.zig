@@ -81,6 +81,8 @@ pub fn build(b: *std.Build) !void {
     run_step.dependOn(&run_cmd.step);
 
     const exe_tests = b.addTest(.{ .root_source_file = .{ .path = "test/test.zig" }, .target = target });
+    exe_tests.use_llvm = false;
+    exe_tests.use_lld = false;
     const snow_source = LazyPath{ .path = "./deps/snow/snow" };
     exe_tests.root_module.addIncludePath(snow_source);
     exe_tests.root_module.addCMacro("_XOPEN_SOURCE", "700");

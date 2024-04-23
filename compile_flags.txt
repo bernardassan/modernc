@@ -1,5 +1,6 @@
 # remove after upgrade to clang 18~ -Wno-c++98-compat -Wno-gnu-auto-type -Wno-fixed-enum-extension
 -Wno-fixed-enum-extension
+-Wno-flexible-array-extensions
 -DSNOW_ENABLED
 -D_XOPEN_SOURCE=700
 -Wall

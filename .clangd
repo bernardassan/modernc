@@ -1,0 +1,10 @@
+CompileFlags:            # Tweak the parse settings
+  Add: [-xc]             # treat all files as C
+  Remove:                # strip all other flags
+Diagnostics:
+  ClangTidy:
+    Add: '*'
+    Remove: [llvmlibc-restrict-system-libc-headers, altera-*]
+    CheckOptions:
+      readability-identifier-naming.VariableCase: lower_case
+    FastCheckFilter: None

@@ -54,7 +54,7 @@ circular *circular_resize(circular *circle, size_t new_max_len) {
 }
 
 circular *circular_new(size_t len) {
-  circular *new_circle = calloc(1UL, sizeof(circular) + sizeof(double[len]));
+  circular *new_circle = calloc(sizeof(circular) + sizeof(double[len]), 1UL);
   if (!new_circle) {
     err(EXIT_FAILURE, "%s", "couldn't allocate a new circle");
   }

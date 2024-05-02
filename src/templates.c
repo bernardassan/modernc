@@ -26,7 +26,7 @@ void fill(Vec(int) * vec) {
 }
 
 int main() {
-  Vec(int) x = {0}; // or = {} in C2x
+  Vec(int) x = {};
   // pre C2x you'd need to typedef Vec(int) to make the pointers compatible and
   // use it for `x` and in fill:
   // --v
@@ -58,7 +58,7 @@ void fill_int(Vec_int *vec) {
 }
 
 void templates_main() {
-  Vec_int iv = {0}; // or = {} in C2x
+  Vec_int iv = {};
   fill_int(&iv);
 
   for (size_t i = 0; i < iv.len; ++i) {

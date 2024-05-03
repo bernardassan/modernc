@@ -73,4 +73,6 @@ circular_resize(circular *circle, size_t new_max_len);
 // circular_getlength: Return the number of elements stored.
 [[gnu::nonnull]] size_t circular_getlength(circular const *const circle);
 
+#define NEW(T, ...) T##_init(malloc(sizeof(T)) __VA_OPT(, ) __VA_ARGS__)
+
 #endif // DYNAMIC_MEMORY_H

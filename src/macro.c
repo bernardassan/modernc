@@ -10,6 +10,18 @@
 // deprecated("message") || [[deprecated("reason")]]
 // noreturn
 
+// Generic selection
+#define scale2p(obj, ...)                                                      \
+  _Generic((obj), Rectangle_s *: scale_rect_2p)((obj), __VA_ARGS__)
+
+#define scale1p(obj, ...)                                                      \
+  _Generic((obj), Rectangle_s *: scale_rect_1p, Circle_s *: scale_circle_1p)(  \
+      (obj), __VA_ARGS__)
+
+// overloading a function on the number of parameters
+#define INVOKE(_1, _2, _3, NAME, ...) NAME
+#define scale(...) INVOKE(__VA_ARGS__, scale2p, scale1p, )(__VA_ARGS__)
+
 #define ERROR_RETURN(CODE)                                                     \
   do {                                                                         \
     if ((CODE))                                                                \

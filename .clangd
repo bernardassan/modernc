@@ -4,7 +4,5 @@ CompileFlags:            # Tweak the parse settings
 Diagnostics:
   ClangTidy:
     Add: ['*']
-    Remove: [llvmlibc-restrict-system-libc-headers, altera-*, readability-avoid-const-params-in-decls]
-    CheckOptions:
-      readability-identifier-naming.VariableCase: lower_case
+    Remove: [altera-*, llvmlibc-restrict-system-libc-headers, readability-avoid-const-params-in-decls]
     FastCheckFilter: None

@@ -10,10 +10,10 @@
 /** @brief the implementation of the circular buffer type */
 // use counted_by in gcc 15 when it becomes available
 typedef struct circular {
-  size_t start;   /**< Position of element 0 */
-  size_t len;     /**< Number of elements stored */
-  size_t max_len; /**< Maximum capacity */
-  /**< Array holding the data*/
+  size_t start;   /* Position of element 0 */
+  size_t len;     /* Number of elements stored */
+  size_t max_len; /* Maximum capacity */
+  /* Array holding the data*/
   double tab[] __attribute__((counted_by(max_len)));
 } circular;
 

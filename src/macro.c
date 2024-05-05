@@ -21,10 +21,10 @@
   fprintf(stderr, "[INFO] (%s:%d) " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 #define MACRO(n, limit)                                                        \
-  while (n < limit) {                                                          \
+  do {                                                                         \
     printf("Educba ");                                                         \
     n++;                                                                       \
-  }
+  } while (n < limit)
 
 #define MODIFY(arr, index)                                                     \
   do {                                                                         \

@@ -10,6 +10,8 @@ circular *circular_init(circular *circle, size_t max_len) {
   *circle = (circular){
       .max_len = max_len,
   };
+  auto const val = 1.3;
+  circle->tab[0] = val;
   return circle;
 }
 
@@ -54,7 +56,8 @@ circular *circular_resize(circular *circle, size_t new_max_len) {
 }
 
 circular *circular_new(size_t len) {
-  circular *new_circle = calloc(1UL, sizeof(circular) + sizeof(double[len]));
+  circular *new_circle =
+      calloc(1UL, sizeof(*new_circle) + sizeof(typeof(*new_circle->tab)[len]));
   if (!new_circle) {
     err(EXIT_FAILURE, "%s", "couldn't allocate a new circle");
   }

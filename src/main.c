@@ -14,9 +14,10 @@
 #ifndef __STDC_VERSION_STDBIT_H__
 #error "stdbit.h is required for this module"
 #endif
-constexpr auto SENTINAL = 1;
 
-extern int oldMain(int argc, char const * [argc + SENTINAL]);
+constexpr static auto SENTINAL = 1;
+
+extern int oldMain(int argc, char const *argv[argc + SENTINAL]);
 extern void use_time();
 
 enum corvid : uint8_t {
@@ -30,16 +31,27 @@ enum corvid : uint8_t {
 enum vehicle { bus, airplane, train, car, horse, feet };
 
 static enum vehicle choose(char arg) {
-  return arg == 'B'   ? bus
-         : arg == 'A' ? airplane
-         : arg == 'T' ? train
-         : arg == 'C' ? car
-         : arg == 'H' ? horse
-                      : feet;
+  switch (arg) {
+  case 'B':
+    return bus;
+  case 'A':
+    return airplane;
+  case 'T':
+    return train;
+  case 'C':
+    return car;
+  case 'H':
+    return horse;
+  default:
+    return feet;
+  }
 }
 
-static int use_choose() { assert(choose('H') == horse && choose('F') == feet); }
-constexpr char CORVID_NAME[corvid_num][8] = {
+[[maybe_unused]] static void use_choose() {
+  assert(choose('H') == horse && choose('F') == feet);
+}
+
+constexpr static char CORVID_NAME[corvid_num][8] = {
     [chough] = "chough",
     [raven] = "raven",
     [magpie] = "magpie",
@@ -49,14 +61,6 @@ constexpr char CORVID_NAME[corvid_num][8] = {
 // hsearch.h
 // insque
 // tsearch
-#define INCHE_PER_FOOT 12
-
-static enum Weekends {
-  Friday,
-  Saturday,
-  Sunday,
-} bestday = Friday,
-  secondbest = Saturday;
 
 static void enumerations() {
 
@@ -127,15 +131,29 @@ label:
   return 0.1;
 }
 
-[[maybe_unused]] static void switching(enum Weekends day) {
-  enum Weekends churchday = Sunday;
+enum { INCHE_PER_FOOT = 12 };
+
+typedef enum Weekends {
+  Friday,
+  Saturday,
+  Sunday,
+} Weekends;
+
+[[maybe_unused]] static void switching(Weekends const day) {
+
+  [[maybe_unused]] Weekends bestday = Friday;
+  [[maybe_unused]] Weekends secondbest = Saturday;
+
+  Weekends churchday = Sunday;
+
   bestday = churchday;
   secondbest = bestday;
   bool boolean = true;
+
   switch (day) {
   case Friday:
     printf("\nIt is friday\n");
-    if (boolean && churchday == Friday) {
+    if (boolean && (churchday == Friday)) {
       boolean = false;
       churchday = Friday;
     }
@@ -151,7 +169,7 @@ label:
 
 [[maybe_unused]] static void sudoRandom() {
   // randomise seed
-  srand((unsigned)time(NULL));
+  srand((unsigned)time(nullptr));
   const int limit = 20;
   const long choosen_random = rand() % limit; // 0 to limit-1 inclusive
 
@@ -166,7 +184,7 @@ label:
 
     if (choosen_random == users_guess) {
       printf("\nCongratulations you guessed right\n");
-      return;
+      quick_exit(EXIT_SUCCESS);
     } else if (users_guess < 0 || users_guess > 20) {
       printf("\nSorry bruh, 😢 the number is between 0 and 20");
     } else {
@@ -182,7 +200,7 @@ label:
 }
 
 [[maybe_unused]] static void sal() {
-  int salary = 10000ULL;
+  int salary = 10'000ULL;
   size_t usize = 0;
   double f = 0.1;
   printf(
@@ -201,8 +219,9 @@ label:
       "Many hands make light work.",
       "Too many cooks spoil the broth.",
   };
-  for (unsigned int i = 0; i < sizeof(sayings) / sizeof(sayings[0]); ++i)
+  for (unsigned int i = 0; i < sizeof(sayings) / sizeof(sayings[0]); ++i) {
     printf("%s\n", sayings[i]);
+  }
 
   union A {
     int a;

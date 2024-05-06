@@ -18,7 +18,11 @@
   _Generic((obj), Rectangle_s *: scale_rect_1p, Circle_s *: scale_circle_1p)(  \
       (obj), __VA_ARGS__)
 
-// overloading a function on the number of parameters
+// INFO:
+// https://stackoverflow.com/questions/11761703/overloading-macro-on-number-of-arguments
+// https://stackoverflow.com/questions/479207/how-to-achieve-function-overloading-in-c
+// https://locklessinc.com/articles/overloading/
+//  overloading a function on the number of parameters
 #define INVOKE(_1, _2, _3, NAME, ...) NAME
 #define scale(...) INVOKE(__VA_ARGS__, scale2p, scale1p, )(__VA_ARGS__)
 

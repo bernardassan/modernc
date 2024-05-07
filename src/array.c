@@ -31,7 +31,57 @@ static int (*return_ptr_to_array_dynamic(const void *p))[3] {
   return malloc(sizeof(int[3]));
 }
 
-int main() {
+typedef struct {
+  char arr[3];
+} char_array;
+
+[[gnu::const, gnu::nonnull(1)]] static char_array saysomething(char str[]);
+
+static char_array saysomething(char str[]) {
+  size_t index = 1;
+  size_t value = 1;
+  while (str[value]) {
+    if (str[value] != str[value - 1]) {
+      str[index] = str[value];
+      index++;
+    }
+    value++;
+  }
+  str[index] = '\0';
+  arr val = {.arr = {}};
+  return val;
+}
+
+[[maybe_unused]] static void array() {
+  const char sayings[][32] = {
+      "Manners maketh man.",
+      "Many hands make light work.",
+      "Too many cooks spoil the broth.",
+  };
+  for (unsigned int i = 0; i < sizeof(sayings) / sizeof(sayings[0]); ++i) {
+    printf("%s\n", sayings[i]);
+  }
+
+  union A {
+    int a;
+    double c;
+  };
+
+  union A b [[maybe_unused]] = {.a = 32};
+  const double arr[5] = {
+      [0] = 9.0,
+      [1] = 7.0,
+      [4] = 3.0E+23,
+      [3] = 0.000'07,
+  };
+
+  for (size_t index = 0; index < sizeof(arr) / sizeof(arr[0]); ++index) {
+    printf("elemets %zu is %g,\tits square is %g\n", index, arr[index],
+           arr[index] * arr[index]);
+  }
+}
+
+static int use_array() {
   struct MyData my_data = {{1, 2, 3}};
 
   // Call the function and access the array
@@ -47,5 +97,9 @@ int main() {
   for (int i = 0; i < 3; i++) {
     printf("%d ", (*result)[i]); // Access the elements of the returned array
   }
+  char input[] = "pebbbabbbles";
+  array();
+  puts(input);
+  auto _ [[maybe_unused]] = saysomething(input);
   return 0;
 }

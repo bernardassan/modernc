@@ -36,8 +36,8 @@ static size_t parseline(char const *restrict const str,
   // characters
   assert(base == 0 || base == 2 || base == 8 || base == 10 || base == 16);
   size_t count = 0;
-  auto next_str = str;
-  for (char *next_digit = nullptr; next_str[0] == '\0';
+
+  for (char const *next_digit = nullptr, *next_str = str; next_str[0] == '\0';
        next_str = next_digit, ++count) {
     // strtoull: parsing stops at the first non-digit for that base
     numb[count] = strtoull(next_str, &next_digit, base);
@@ -58,6 +58,7 @@ static char const *fgetline(size_t size,
                             FILE *restrict stream) {
   char const *result = fgets(str_buf, (int)size, stream);
   if (result) {
+    // replace '\n' with '\0'
     auto newline_index = strchr(str_buf, '\n');
     if (newline_index) {
       *newline_index = '\0';
@@ -69,6 +70,31 @@ static char const *fgetline(size_t size,
     result = nullptr;
   }
   return result;
+}
+
+/*`sprintnumbers`: print a series of numbers nums in buf, using printf format
+form, separated by sep characters and terminated with a newline character.
+`Returns`: the number of characters printed to buf.
+This supposes that tot and buf are big enough and that form is a format suitable
+to print `size_t`.
+*/
+size_t sprintnumbers(size_t size, char buf[restrict static size],
+                     char const form[restrict static 1],
+                     char const sep[restrict static 1], size_t len,
+                     size_t nums[restrict static len]) {
+  assert(len > 0);
+  auto next_pos = buf;
+  auto const sep_len = strlen(sep);
+  for (size_t index = 0; index < len; ++index) {
+    auto const num_byte_printed = sprintf(next_pos, form, nums[index]);
+    next_pos += num_byte_printed;
+    memcpy(next_pos, sep, sep_len);
+    next_pos += sep_len;
+  }
+  strcpy(next_pos, "\n");
+
+  ptrdiff_t const total_bytes_printed = next_pos - buf;
+  return (size_t)total_bytes_printed;
 }
 
 bool use_io() {

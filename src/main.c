@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // queue.h
@@ -22,7 +23,7 @@ int oldMain(int argc, char const *argv[argc + SENTINAL]) {
             "Error result '%s': The character %#X was not found in the string "
             "'%s'",
             (char *)result, (uint32_t)'\0', program_name);
-    return false;
+    return EXIT_FAILURE;
   }
   if (!strncmp(name, program_name, len)) {
     printf("\nprogram name '%s' has been successfully copied\n", name);

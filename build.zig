@@ -29,9 +29,22 @@ pub fn build(b: *std.Build) !void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const optimize = b.standardOptimizeOption(.{});
 
-    const exe = b.addExecutable(.{ .name = "relearn", .root_source_file = .{ .path = "src/main.zig" }, .target = target, .optimize = optimize });
+    const exe = b.addExecutable(.{
+        .name = "relearn",
+        .root_source_file = b.path("src/main.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     exe.use_llvm = false;
     exe.use_lld = false;
+
+    const c_translate = b.addTranslateC(.{
+        .root_source_file = b.path("src/c.h"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    exe.root_module.addImport("c", c_translate.createModule());
 
     // NOTE: https://man7.org/linux/man-pages/man7/feature_test_macros.7.html
     // https://stackoverflow.com/questions/5378778/what-does-d-xopen-source-do-mean
@@ -49,11 +62,11 @@ pub fn build(b: *std.Build) !void {
     eh.use_lld = false;
     eh.root_module.addCMacro("_XOPEN_SOURCE", "700");
     const eh_source = CSourceFile{
-        .file = .{ .path = "./deps/eh/eh.c" },
+        .file = b.path("./deps/eh/eh.c"),
         .flags = cflags,
     };
     eh.root_module.addCSourceFile(eh_source);
-    eh.root_module.addIncludePath(.{ .path = "./deps/eh" });
+    eh.root_module.addIncludePath(b.path("./deps/eh/"));
     b.installArtifact(eh);
 
     eh.linkLibC();
@@ -80,19 +93,29 @@ pub fn build(b: *std.Build) !void {
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
 
-    const exe_tests = b.addTest(.{ .root_source_file = .{ .path = "test/test.zig" }, .target = target });
+    const exe_tests = b.addTest(.{
+        .root_source_file = b.path("test/test.zig"),
+        .target = target,
+    });
+
     exe_tests.use_llvm = false;
     exe_tests.use_lld = false;
-    const snow_source = LazyPath{ .path = "./deps/snow/snow" };
-    exe_tests.root_module.addIncludePath(snow_source);
+    exe_tests.root_module.addIncludePath(b.path("./deps/snow/snow/"));
     exe_tests.root_module.addCMacro("_XOPEN_SOURCE", "700");
     exe_tests.root_module.addCMacro("SNOW_ENABLED", "1");
+    exe_tests.root_module.addImport("c", c_translate.createModule());
     exe_tests.linkLibrary(eh);
-    const c_test_sources = try findCfiles(b.allocator, "test/");
-    exe_tests.root_module.addCSourceFiles(.{ .files = c_test_sources, .flags = &.{"-std=c2x"} });
-
+    const c_test_sources = try findCfiles(
+        b.allocator,
+        "test/",
+    );
+    exe_tests.root_module.addCSourceFiles(.{
+        .files = c_test_sources,
+        .flags = &.{"-std=c2x"},
+    });
+    const run_test = b.addRunArtifact(exe_tests);
     const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&exe_tests.step);
+    test_step.dependOn(&run_test.step);
 }
 
 fn loadCompileFlags(comptime path: []const u8, array: *Array) []const []const u8 {

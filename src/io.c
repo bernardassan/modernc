@@ -1,3 +1,4 @@
+#include "c23-fallback.h"
 #include <assert.h>
 #include <err.h>
 #include <stddef.h>
@@ -40,7 +41,8 @@ static size_t parseline(char const *restrict const str,
   for (char const *next_digit = nullptr, *next_str = str; next_str[0] == '\0';
        next_str = next_digit, ++count) {
     // strtoull: parsing stops at the first non-digit for that base
-    numb[count] = strtoull(next_str, &next_digit, base);
+
+    numb[count] = strtoull(next_str, (char **)(uintptr_t)&next_digit, base);
     if (next_str == next_digit) {
       break;
     }

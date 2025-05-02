@@ -13,13 +13,13 @@ static void swap_doubles(double items[const static 2]) {
 
 // [[unsequenced=>const]] [[reproducible=>pure]] attributes is currently not in
 // clang 18 or gcc 14
-inline size_t gcd2 [[gnu::const]] (size_t a, size_t b) {
-  assert(a <= b);
-  if (!a) {
-    return b;
+[[gnu::const]] inline size_t gcd2(size_t num_1, size_t num_2) {
+  assert(num_1 <= num_2);
+  if (!num_1) {
+    return num_2;
   }
-  size_t rem = b % a;
-  return gcd2(rem, a);
+  size_t rem = num_2 % num_1;
+  [[clang::musttail]] return gcd2(rem, num_1);
 }
 
 [[deprecated, maybe_unused]] static double myrand() {
@@ -29,11 +29,12 @@ label:
       goto label;
     }
   }
-  return 0.1;
+  auto const rand = 0.1;
+  return rand;
 }
 
 void use_algo() {
-  double A[2] = {3.1, 4.5};
-  swap_doubles(A);
-  printf("A[0] = %g, A[1] = %g\n", A[0], A[1]);
+  double Array[2] = {3.1, 4.5};
+  swap_doubles(Array);
+  printf("A[0] = %g, A[1] = %g\n", Array[0], Array[1]);
 }

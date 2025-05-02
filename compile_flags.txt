@@ -13,6 +13,6 @@
 -Wno-switch-default
 -pedantic
 -pedantic-errors
--std=c2x
+-std=c2y
 -Wno-fixed-enum-extension
 -Wno-gnu-auto-type

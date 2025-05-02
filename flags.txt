@@ -59,7 +59,7 @@ extract from above relevant options
 -Wused-but-marked-unused
 -Wvla
 -Wzero-as-null-pointer-constant
--std=c2x
+-std=c2y
 
 # GCC Debug Mode Options
--std=c23 -Wall -Wextra -pedantic-errors -Warray-bounds=2 -Wstrict-aliasing=1 -fstrict-aliasing -Wstrict-flex-arrays -fstrict-flex-arrays=3 -fhardened -fsanitize=address,leak,undefined -fanalyzer -Og
+-std=c2y -Wall -Wextra -pedantic-errors -Warray-bounds=2 -Wstrict-aliasing=1 -fstrict-aliasing -Wstrict-flex-arrays -fstrict-flex-arrays=3 -fhardened -fsanitize=address,leak,undefined -fanalyzer -Og

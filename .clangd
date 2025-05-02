@@ -1,8 +1,11 @@
-CompileFlags:            # Tweak the parse settings
-  Add: [-xc]             # treat all files as C
-  Remove: []             # strip all other flags
+CompileFlags:
+  Add: [-xc]
 Diagnostics:
   ClangTidy:
     Add: ['*']
-    Remove: [altera-*, llvmlibc-restrict-system-libc-headers, readability-avoid-const-params-in-decls]
-    FastCheckFilter: None
+    Remove: [altera-*, llvmlibc-restrict-system-libc-headers, misc-no-recursion]
+    FastCheckFilter: None # Run checks regardless of their speed
+InlayHints:
+  BlockEnd: Yes
+  DefaultArguments: Yes
+  TypeNameLimit: 0 # No typename limit

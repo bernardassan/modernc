@@ -3,63 +3,12 @@
 # https://interrupt.memfault.com/blog/best-and-worst-gcc-clang-compiler-flags
 # https://lefticus.gitbooks.io/cpp-best-practices/content/02-Use_the_Tools_Available.html
 extract from above relevant options
-# https://github.com/Ultra-Code/archsway/blob/3535bd4555f4512a742d052e686e3516fb893051/clang/.clang
+# https://github.com/bernardassan/archsway/blob/3535bd4555f4512a742d052e686e3516fb893051/clang/.clang
 # https://clang.llvm.org/docs/UsersManual.html#diagnostics-enable-everything
 # https://github.com/ayende/libgavran/blob/master/makefile
-# https://github.com/Ultra-Code/archsway/blob/3535bd4555f4512a742d052e686e3516fb893051/build2/build2.zsh
--Wall
--Walloca
--Warray-bounds-pointer-arithmetic
--Wassign-enum
--Watomic-implicit-seq-cst
--Watomic-properties
--Wbad-function-cast
--Wcast-align
--Wcast-function-type
--Wcast-qual
--Wcomma
--Wconditional-uninitialized
--Wconversion
--Wduplicate-enum
--Werror
--Wextra
--Wfloat-equal
--Wgnu
--Wimplicit-fallthrough
--Wloop-analysis
--Wmethod-signatures
--Wmicrosoft
--Wmissing-noreturn
--Wmissing-prototypes
--Wmissing-variable-declarations
--Wno-missing-braces
--Wnullable-to-nonnull-conversion
--Wold-style-cast
--Wover-aligned
--Wpacked
--Wpedantic
--Wpointer-arith
--Wreserved-identifier
--Wshadow
--Wshadow-all
--Wshift-sign-overflow
--Wsigned-enum-bitfield
--Wswitch-enum
--Wtautological-compare
--Wtautological-constant-in-range-compare
--Wthread-safety
--Wthread-safety-beta
--Wthread-safety-negative
--Wthread-safety-verbose
--Wunaligned-access
--Wundef
--Wunreachable-code-aggressive
--Wunused
--Wunused-macros
--Wused-but-marked-unused
--Wvla
--Wzero-as-null-pointer-constant
--std=c2y
+# https://github.com/bernardassan/archsway/blob/3535bd4555f4512a742d052e686e3516fb893051/build2/build2.zsh
 
-# GCC Debug Mode Options
--std=c2y -Wall -Wextra -pedantic-errors -Warray-bounds=2 -Wstrict-aliasing=1 -fstrict-aliasing -Wstrict-flex-arrays -fstrict-flex-arrays=3 -fhardened -fsanitize=address,leak,undefined -fanalyzer -Og
+# `gcc.flags` ++ GCC Runtime Mode Options
+-Whardened
+-fhardened
+-fsanitize=address,leak,undefined

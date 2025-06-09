@@ -1,18 +1,15 @@
-# remove after upgrade to clang 18~ -Wno-gnu-auto-type -Wno-fixed-enum-extension
 -DSNOW_ENABLED
--D_XOPEN_SOURCE=700
+-D_XOPEN_SOURCE=800
 -Wall
 -Weverything
 -Wextra
+-Wno-c++98-compat
 -Wno-declaration-after-statement
 -Wno-pre-c2x-compat
--Wno-c++98-compat
--Wno-unsafe-buffer-usage
--Wno-unused-macros
--Wno-vla
 -Wno-switch-default
+-Wno-unsafe-buffer-usage
+-Wno-used-but-marked-unused
+-Wno-vla
 -pedantic
 -pedantic-errors
 -std=c2y
--Wno-fixed-enum-extension
--Wno-gnu-auto-type

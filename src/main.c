@@ -19,10 +19,11 @@ int oldMain(int argc, char const *argv[argc + SENTINAL]) {
 
   auto result = memccpy(name, program_name, '\0', len);
   if (!result) {
-    fprintf(stderr,
-            "Error result '%s': The character %#X was not found in the string "
-            "'%s'",
-            (char *)result, (uint32_t)'\0', program_name);
+    (void)fprintf(
+        stderr,
+        "Error result '%s': The character %#X was not found in the string "
+        "'%s'",
+        (char *)result, (uint32_t)'\0', program_name);
     return EXIT_FAILURE;
   }
   if (!strncmp(name, program_name, len)) {

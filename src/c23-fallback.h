@@ -1,7 +1,6 @@
 #ifndef C23_FALLBACK_H
 #define C23_FALLBACK_H
 
-#pragma GCC system_header
 /** @file
  ** @brief A header file to augment compatibility of older compilers with C23.
  **
@@ -81,11 +80,11 @@
  ** And then, ..., there are the bugs. Currently, the code triggers
  ** one particular bug of gcc-13 in `endianness.c`.
  **
- ** As of October 2023, gcc-13 and clang-17 work with most of the new
+ ** As of March 2024, gcc-14 and clang-18 work with most of the new
  ** C23 features. Current restrictions are
  **
- ** - gcc-13: `_BintInt` types are not yet implemented
- ** - clang-17: `constexpr` is not yet implemented
+ ** - clang-18: `constexpr` is not yet implemented
+ ** - both: `#embed` is not yet implemented
  **
  ** As indicated above, some short comings of your C library
  ** implementation can be worked around, but unfortunately not all. As
@@ -99,28 +98,21 @@
  **   features, so in particular `printf` etc will not work with the
  **   new formats, yet.
  **
- ** My intention is to have patches included to musl whence the new
- ** edition of Modern C and the new standard appear. In the mean time
- ** I will try to post a patch set and build recipe such that you may
- ** easily build such modified version of musl with complete C23
- ** support on your own. Stay tuned.
+ ** We are currently working to have patches included to musl whence
+ ** the new edition of Modern C and the new standard appear. In the
+ ** mean time I will try to post a patch set and build recipe such
+ ** that you may easily build such modified version of musl with
+ ** complete C23 support on your own. Stay tuned.
  **/
 
 #include <limits.h>
-#include <stdalign.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <wchar.h>
 
 /* Needed for musl */
-#ifdef __has_include
-#if __has_include(<stdc-predef.h>)
-#include <stdc-predef.h>
-#endif
-#endif
+/* #ifdef __has_include */
+/* # if __has_include(<stdc-predef.h>) */
+/* #  include <stdc-predef.h> */
+/* # endif */
+/* #endif */
 
 #if (__STDC_UTF_16__ != 1) || (__STDC_UTF_32__ != 1)
 #ifndef C23_FALLBACK_SILENT
@@ -155,8 +147,29 @@
 #endif
 #endif
 
+/* A simple type-generic conditional. */
+#define GENERIC_IF(COND, A, B)                                                 \
+  _Generic((char(*)[1 + !!(COND)])0, char(*)[2]: (A), default: (B))
+
+/* clang has a set of feature tests that are quite comfortable,
+
+   __has_feature, to test if a specific feature is implemented
+
+   __has_extension, to test if a specific feature is implemented
+
+   __is_identifier, to test if a word is an identifier or a keyword.
+
+   In the following we construct similar tests for gcc such that we
+   may use these features independently from the C standard version
+   that is supported. */
 #define __tester2(_0, _1, ...) _1
 #define __tester1(...) __tester2(__VA_ARGS__)
+#ifndef __has_feature
+#define __has_feature(X) __tester1(__has_feature_##X 1, 0, )
+#endif
+#ifndef __has_extension
+#define __has_extension(X) __tester1(__has_extension_##X 1, 0, )
+#endif
 
 #ifndef __is_identifier
 #define __is_identifier(X) __tester1(__is_special_##X 0, 1, )
@@ -202,35 +215,31 @@
 #define __is_special__Generic ,
 #define __is_special__Imaginary ,
 #define __is_special__Noreturn ,
-#if __GNUC__ > 12
-#define __is_special_bool ,
-#define __is_special_false ,
+#if __GNUC__ > 12 || __STDC_VERSION__ >= 202311L
 #define __is_special_nullptr ,
 #define __is_special_static_assert ,
 #define __is_special_thread_local ,
-#define __is_special_true ,
 #define __is_special_constexpr ,
 #define __is_special_typeof ,
 #define __is_special_typeof_unqual ,
-#elif __GNUC__ > 13
+#endif
+#if __GNUC__ > 13 || __STDC_VERSION__ >= 202311L
+#define __is_special__BitInt ,
 #define __is_special_alignas ,
 #define __is_special_alignof ,
-#define __is_special__BitInt ,
+#define __is_special_bool ,
+#define __is_special_false ,
+#define __is_special_true ,
 #endif
 #endif
-#ifndef __has_feature
-#define __has_feature(X) __tester1(__has_feature_##X 1, 0, )
-#if __GNUC__ > 12
+#if __GNUC__ > 12 || __STDC_VERSION__ >= 202311L
 #define __has_feature_c_fixed_enum ,
-#endif
-#endif
-#ifndef __has_extension
-#define __has_extension(X) __tester1(__has_extension_##X 1, 0, )
 #endif
 
 // The feature for fixed underlying types for enums has been so long
 // in clang, that they don't even seem to have a feature test for it.
-#if !__has_feature(c_fixed_enum) && (__clang_major__ < 8)
+#if !__has_feature(c_fixed_enum) && defined(__clang_major__) &&                \
+    (__clang_major__ < 8)
 #ifndef C23_FALLBACK_SILENT
 #warning                                                                       \
     "syntax for fixed underlying integer type of enumerations is not supported"
@@ -239,24 +248,30 @@
 
 #if __is_identifier(constexpr)
 #ifndef C23_FALLBACK_SILENT
-#warning "constexpr keyword is not supported"
+#warning "constexpr keyword is not supported, emulating as static const"
 #endif
 #define constexpr static const
 #endif
 
 #if __is_identifier(bool)
-// for bool, false and true
-#include <stdbool.h>
-
-#ifdef true
-#undef true
-#define true ((bool)+1U)
+#ifndef C23_FALLBACK_SILENT
+#warning "bool keyword is not supported, emulating as macro"
 #endif
-
-#ifdef false
+#define bool _Bool
+#endif
+#if __is_identifier(false)
+#ifndef C23_FALLBACK_SILENT
+#warning "false keyword is not supported, emulating as macro"
+#endif
 #undef false
 #define false ((bool)+0U)
 #endif
+#if __is_identifier(true)
+#ifndef C23_FALLBACK_SILENT
+#warning "true keyword is not supported, emulating as macro"
+#endif
+#undef true
+#define true ((bool)+1U)
 #endif
 
 #if __is_identifier(thread_local)
@@ -275,18 +290,22 @@
 #define alignas _Alignas
 #endif
 
-// for static_assert
-#include <assert.h>
+#if __is_identifier(static_assert)
+#undef static_assert
+#define static_assert(...) __static_assert(__VA_ARGS__, )
+#define __static_assert(E, ...) _Static_assert(E)
+#endif
 
-#if __STDC_VERSION__ < 202300L
+#if __is_identifier(typeof)
 #if __GNUC__
+#undef typeof
 #define typeof __typeof__
 #else
 #warning "typeof operator only comes with C23"
 #endif
 #endif
 
-#if __STDC_VERSION__ < 202300L
+#if __STDC_VERSION__ < 202311L
 #if __GNUC__
 #if __GNUC__ < 13
 #define auto __auto_type
@@ -299,6 +318,86 @@
 #ifndef __has_c_attribute
 #define __has_c_attribute(X) 0
 #endif
+
+// C23 has nullptr, use a fallback if that is not available. Here we
+// use an enumeration type and constant to do that. The idea is that
+// such an enumeration may then be used in _Generic as long the cases
+// otherwise only have pointer types. The first choice is to use a
+// _BitInt type for that, if that is already available, in an effort
+// to not clash with standard integer types. If that is not found, we
+// use a standard integer type that has the right width.
+//
+// If possible, we also use an attribute that forces warnings if any
+// other value than a null or 0 is assigned to a variable of type
+// nullptr_t.
+#if !__is_identifier(nullptr)
+// Maybe this is also provided by the C library implementation, but a
+// redefinition makes no harm.
+typedef typeof(nullptr) nullptr_t;
+#elif (__STC_VERSION__ < 202311L)
+#ifdef BITINT_MAXWIDTH
+
+#ifndef C23_FALLBACK_SILENT
+#warning                                                                       \
+    "using fallback for nullptr to enumeration constant based on _BitInt type"
+#else
+#pragma GCC diagnostic ignored "-Wnon-literal-null-conversion"
+#endif
+
+enum
+#if __has_c_attribute(clang::enum_extensibility)
+    [[__clang__::__enum_extensibility__(closed)]]
+#endif
+    nullptr_t : __typeof__((unsigned _BitInt(sizeof(void *) * CHAR_BIT))0) {
+      nullptr,
+    };
+
+#else
+
+#ifndef C23_FALLBACK_SILENT
+#warning                                                                       \
+    "using fallback for nullptr to enumeration constant based on standard integer type"
+#endif
+
+enum
+#if __has_c_attribute(clang::enum_extensibility)
+    [[__clang__::__enum_extensibility__(closed)]]
+#endif
+    nullptr_t {
+      nullptr,
+      __nullptr_max =
+          GENERIC_IF((sizeof(void *) == sizeof(int)), -1U,
+                     GENERIC_IF((sizeof(void *) == sizeof(long)), -1UL, -1ULL)),
+    };
+
+// Unfortunately such an enumeration type is not yet good enough for
+// all compilers. In particular some gcc version has nullptr and
+// __nullptr_max as different types. Force an expression that is an
+// ICE of value 0 and of the enumeration type.
+#define nullptr (1 ? nullptr : __nullptr_max)
+#endif
+#endif
+typedef typeof(nullptr) nullptr_t;
+
+static_assert(_Generic(nullptr, nullptr_t: true));
+static_assert(sizeof(void *) == sizeof(nullptr));
+static_assert(sizeof(void *) == sizeof(nullptr_t));
+
+/**********************************************************************************************/
+
+#include <inttypes.h>
+#include <setjmp.h>
+#include <signal.h>
+#include <stdalign.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <wchar.h>
+
+/**********************************************************************************************/
 
 // for call_once
 #ifndef ONCE_FLAG_INIT
@@ -353,6 +452,8 @@ static inline void call_once(once_flag *flag, void callback(void)) {
 #endif
 #endif
 #endif
+
+/**********************************************************************************************/
 
 // We assume that the compiler is already able to handle the new
 // attribute syntax such as [[deprecated]]. Nevertheless, maybe
@@ -413,11 +514,11 @@ static inline void call_once(once_flag *flag, void callback(void)) {
 #define __maybe_unused__ __gnu__::__unused__
 #endif
 
-#if !__has_c_attribute(__noreturn__) && __has_c_attribute(__gnu__::__noreturn__)
+#if !__has_c_attribute(noreturn) && __has_c_attribute(__gnu__::__noreturn__)
 #ifndef C23_FALLBACK_SILENT
 #warning "emulating noreturn attribute via gnu attribute"
 #endif
-#define __noreturn__ __gnu__::__noreturn__
+#define noreturn __gnu__::__noreturn__
 #endif
 
 #if !__has_c_attribute(__fallthrough__) &&                                     \
@@ -431,13 +532,33 @@ static inline void call_once(once_flag *flag, void callback(void)) {
 [[__deprecated__]] char *asctime(const struct tm *);
 [[__deprecated__]] char *ctime(const time_t *);
 #endif
+
+// Gnu compilers have a malloc attribute that comes in two different
+// forms. Without argument it just certifies that a function returns a
+// pointer value that has not been seen before, and thus the pointer
+// target will not alias with anything known. The second form receives
+// one or two arguments and specifies a function that should be used
+// analogous to free. Unfortunately, clang didn't follow that second
+// development, yet. But we suppose that there will be at least a
+// partial solution in clang-18 final.
+#if __has_c_attribute(__gnu__::__malloc__) &&                                  \
+    !(defined(__clang_major__) && __clang_major__ <= 19)
+#define __gnu_free__(...) __gnu__::__malloc__(__VA_ARGS__)
+#else
+#define __gnu_free__(...)
+#endif
+
+/**********************************************************************************************/
+
 /* C23 allows to omit the second argument of va_start */
-#if __STDC_VERSION_STDARG_H__ < 202300L
+#if __STDC_VERSION_STDARG_H__ < 202311L
 #undef va_start
 #define va_start(...) __va_start1(__VA_ARGS__, 0, )
 #define __va_start1(...) __va_start2(__VA_ARGS__)
 #define __va_start2(v, l, ...) __builtin_va_start(v, l)
 #endif
+
+/**********************************************************************************************/
 
 /* C23 has three new tg interfaces in the new <stdkdint.h> header.
 They are modeled after similar gcc features. They are meant to do
@@ -466,72 +587,7 @@ are on a compiler claiming compatibility with gcc. */
 #endif
 #endif
 
-#define GENERIC_IF(COND, A, B)                                                 \
-  _Generic((char(*)[1 + !!(COND)])0, char(*)[2]: (A), default: (B))
-
-// C23 has nullptr, use a fallback if that is not available. Here we
-// use an enumeration type and constant to do that. The idea is that
-// such an enumeration may then be used in _Generic as long the cases
-// otherwise only have pointer types. The first choice is to use a
-// _BitInt type for that, if that is already available, in an effort
-// to not clash with standard integer types. If that is not found, we
-// use a standard integer type that has the right width.
-//
-// If possible, we also use an attribute that forces warnings if any
-// other value than a null or 0 is assigned to a variable of type
-// nullptr_t.
-#if !__is_identifier(nullptr)
-// Maybe this is also provided by the C library implementation, but a
-// redefinition makes no harm.
-typedef typeof(nullptr) nullptr_t;
-#elif (__STC_VERSION__ < 202300L)
-#ifdef BITINT_MAXWIDTH
-
-#ifndef C23_FALLBACK_SILENT
-#warning                                                                       \
-    "using fallback for nullptr to enumeration constant based on _BitInt type"
-#else
-#pragma GCC diagnostic ignored "-Wnon-literal-null-conversion"
-#endif
-
-enum
-#if __has_c_attribute(clang::enum_extensibility)
-    [[__clang__::__enum_extensibility__(closed)]]
-#endif
-    nullptr_t : __typeof__((unsigned _BitInt(sizeof(void *) * CHAR_BIT))0) {
-      nullptr,
-    };
-
-#else
-
-#ifndef C23_FALLBACK_SILENT
-#warning                                                                       \
-    "using fallback for nullptr to enumeration constant based on standard integer type"
-#endif
-
-enum
-#if __has_c_attribute(clang::enum_extensibility)
-    [[__clang__::__enum_extensibility__(closed)]]
-#endif
-    nullptr_t {
-      nullptr,
-      __nullptr_max = GENERIC_IF(
-          (sizeof(void *) == sizeof(int)), UINT_MAX,
-          GENERIC_IF((sizeof(void *) == sizeof(long)), ULONG_MAX, ULLONG_MAX)),
-    };
-
-// Unfortunately such an enumeration type is not yet good enough for
-// all compilers. In particular some gcc version has nullptr and
-// __nullptr_max as different types. Force an expression that is an
-// ICE of value 0 and of the enumeration type.
-#define nullptr (true ? nullptr : __nullptr_max)
-#endif
-typedef enum nullptr_t nullptr_t;
-#endif
-
-static_assert(_Generic(nullptr, nullptr_t: true));
-static_assert(sizeof(void *) == sizeof(nullptr));
-static_assert(sizeof(void *) == sizeof(nullptr_t));
+/**********************************************************************************************/
 
 // C23 has the unreachable macro in <stdlib.h>, use a fallback if that
 // is not available
@@ -541,6 +597,8 @@ static_assert(sizeof(void *) == sizeof(nullptr_t));
 #endif
 #define unreachable() __builtin_unreachable()
 #endif
+
+/**********************************************************************************************/
 
 // C23 provides macros for the width of integer types. Provide a
 // fallback if they are not available
@@ -709,10 +767,36 @@ static_assert(sizeof(void *) == sizeof(nullptr_t));
 #endif
 #endif
 
+#ifndef UINT128_MAX
+#ifdef __SIZEOF_INT128__
+#if defined(__clang_major__) && (__clang_major__ < 18)
+#ifndef C23_FALLBACK_SILENT
+#warning                                                                       \
+    "not using compiler intrinsic for int128_t, please upgrade to clang version ≥ 18"
+#endif
+#else
+#define __has_int128
+#endif
+#endif
+#endif
+
+#ifndef UINT256_MAX
+#ifdef __SIZEOF_INT256__
+#if defined(__clang_major__) && (__clang_major__ < 18)
+#ifndef C23_FALLBACK_SILENT
+#warning                                                                       \
+    "not using compiler intrinsic for int256_t, please upgrade to clang version ≥ 18"
+#endif
+#else
+#define __has_int256
+#endif
+#endif
+#endif
+
 // In C23 uint128_t may exist, even if it is wider than
 // uintmax_t. Provide it if the compiler supports it.
 #ifndef UINT128_MAX
-#ifdef __SIZEOF_INT128__
+#ifdef __has_int128
 typedef signed __int128 int128_t;
 typedef unsigned __int128 uint128_t;
 #define UINT128_WIDTH 128
@@ -730,7 +814,7 @@ typedef unsigned __int128 uint128_t;
 // In C23 uint256_t may exist, even if it is wider than
 // uintmax_t. Provide it if the compiler supports it.
 #ifndef UINT256_MAX
-#ifdef __SIZEOF_INT256__
+#ifdef __has_int256
 typedef signed __int256 int256_t;
 typedef unsigned __int256 uint256_t;
 #define UINT256_WIDTH 256
@@ -745,9 +829,12 @@ typedef unsigned __int256 uint256_t;
 #endif
 #endif
 
-#if __STDC_VERSION_INTTYPES_H__ < 202200L
+/**********************************************************************************************/
+
+#if __STDC_VERSION_INTTYPES_H__ < 202311L
 #ifndef C23_FALLBACK_SILENT
-#warning "no C23 support for %w printf or scanf length modifiers found"
+#warning                                                                       \
+    "native C23 library support for %b printf or scanf formats may be missing"
 #endif
 #ifndef PRIb32
 #if __GLIBC__ > 1 && defined(__PRI64_PREFIX)
@@ -805,6 +892,8 @@ typedef unsigned __int256 uint256_t;
 #endif
 #endif
 
+/**********************************************************************************************/
+
 // Complex arithmetic without <complex.h> header
 #ifndef __STDC_NO_COMPLEX__
 
@@ -847,6 +936,8 @@ static _C23_complex const _C23_I = {
 #define _C23_long_double_Complex_CASE
 #endif
 
+/**********************************************************************************************/
+
 // Testing for presence of decimal floating types
 
 #if defined(__DEC32_MAX__)
@@ -869,26 +960,30 @@ static _C23_complex const _C23_I = {
 
 #define isdecimalfloating(...)                                                 \
   (_Generic((__VA_ARGS__) + 0,                                                 \
-      _C23_Decimal32_CASE _C23_Decimal64_CASE                                  \
-          _C23_Decimal128_CASE default: false))
+       _C23_Decimal32_CASE _C23_Decimal64_CASE                                 \
+           _C23_Decimal128_CASE default: false))
 #ifndef iscomplex
 #define iscomplex(...)                                                         \
   (_Generic((__VA_ARGS__) + 0,                                                 \
-      _C23_float_Complex_CASE _C23_double_Complex_CASE                         \
-          _C23_long_double_Complex_CASE default: false))
+       _C23_float_Complex_CASE _C23_double_Complex_CASE                        \
+           _C23_long_double_Complex_CASE default: false))
 #endif
 #define isstandardrealfloating(...)                                            \
   (_Generic((__VA_ARGS__) + 0,                                                 \
-      float: true,                                                             \
-      double: true,                                                            \
-      long double: true,                                                       \
-      default: false))
+       float: true,                                                            \
+       double: true,                                                           \
+       long double: true,                                                      \
+       default: false))
 #define isstandardfloating(...)                                                \
   ((bool)(isstandardrealfloating(__VA_ARGS__) || iscomplex(__VA_ARGS__)))
 #ifndef isfloating
 #define isfloating(...)                                                        \
   ((bool)(isstandardfloating(__VA_ARGS__) || isdecimalfloating(__VA_ARGS__)))
 #endif
+
+/**********************************************************************************************/
+
+// various tg-conversions and type traits
 
 #ifndef totype
 #define totype(Y, ...) ((typeof(__VA_ARGS__))Y)
@@ -911,16 +1006,16 @@ static _C23_complex const _C23_I = {
 #ifndef is_const_target
 #define is_const_target(...)                                                   \
   (_Generic((1 ? (__VA_ARGS__) : (void *)1),                                   \
-      void const *: true,                                                      \
-      void const volatile *: true,                                             \
-      default: false))
+       void const *: true,                                                     \
+       void const volatile *: true,                                            \
+       default: false))
 #endif
 #ifndef is_volatile_target
 #define is_volatile_target(...)                                                \
   (_Generic((1 ? (__VA_ARGS__) : (void *)1),                                   \
-      void volatile *: true,                                                   \
-      void const volatile *: true,                                             \
-      default: false))
+       void volatile *: true,                                                  \
+       void const volatile *: true,                                            \
+       default: false))
 #endif
 #ifndef is_const
 #define is_const(...) is_const_target(&(typeof(__VA_ARGS__)){0})
@@ -932,8 +1027,8 @@ static _C23_complex const _C23_I = {
 struct do_not_use_this_otherwise;
 #define is_null_pointer_constant(...)                                          \
   (_Generic((1 ? (struct do_not_use_this_otherwise *)nullptr : (__VA_ARGS__)), \
-      struct do_not_use_this_otherwise *: true,                                \
-      default: false))
+       struct do_not_use_this_otherwise *: true,                               \
+       default: false))
 #endif
 #ifndef is_zero_ice
 #define is_zero_ice(...)                                                       \
@@ -961,8 +1056,8 @@ struct do_not_use_this_otherwise;
 #ifndef isxwide
 #define isxwide(...)                                                           \
   ((bool)(isinteger(__VA_ARGS__) && _Generic((__VA_ARGS__) + 0ULL,             \
-                                    unsigned long long: false,                 \
-                                    default: true)))
+              unsigned long long: false,                                       \
+              default: true)))
 #endif
 
 #ifndef is_pointer
@@ -974,12 +1069,12 @@ struct do_not_use_this_otherwise {
              (__VA_ARGS__))
 #define is_pointer_nvla(...)                                                   \
   (_Generic((typeof(__VA_ARGS__) *)0,                                          \
-      typeof(get_fla(*(__VA_ARGS__))) * *: true,                               \
-      default: false))
+       typeof(get_fla(*(__VA_ARGS__))) * *: true,                              \
+       default: false))
 #define is_pointer_vla(...)                                                    \
   (_Generic((typeof(get_fla(*(__VA_ARGS__))) *)0,                              \
-      typeof(struct do_not_use_this_otherwise[1]) *: true,                     \
-      default: false))
+       typeof(struct do_not_use_this_otherwise[1]) *: true,                    \
+       default: false))
 #define is_pointer(...)                                                        \
   ((bool)(is_pointer_nvla(__VA_ARGS__) || is_pointer_vla(__VA_ARGS__)))
 #endif
@@ -997,15 +1092,19 @@ struct do_not_use_this_otherwise {
       default: false)
 #endif
 
-/*
-  Const preserving functions as of C23.
- */
+/**********************************************************************************************/
+
+/* Const preserving functions as of C23. */
+
+/* These are not exactly according to the book, because the return
+   type of the string functions could sometimes be a pointer to a void
+   type and not a character type.*/
 
 #if __STDC_VERSION_STRING_H__ < 202311L
 
 // QVoid *memchr(QVoid *s, int c, size_t n);
 #ifndef memchr
-#define memchr(S, C, N) ((typeof(S))memchr((S), (C), (N)))
+#define memchr(S, C, N) ((typeof(1 ? S : (void *)1))memchr((S), (C), (N)))
 #endif
 
 // QChar *strchr(QChar *s, int c);
@@ -1065,12 +1164,15 @@ struct do_not_use_this_otherwise {
 //               int (*compar)(const void *, const void *));
 #ifndef bsearch
 #define bsearch(KEY, BASE, NMEMB, SIZE, COMPAR)                                \
-  ((typeof((void)0, BASE))bsearch((KEY), (BASE), (NMEMB), (SIZE), (COMPAR)))
+  ((typeof(1 ? (BASE) : (void *)1))bsearch((KEY), (BASE), (NMEMB), (SIZE),     \
+                                           (COMPAR)))
 #endif
 
 #endif
 
 #endif
+
+/**********************************************************************************************/
 
 #ifdef __has_include
 #if __has_include(<stdbit.h>)
@@ -1100,6 +1202,8 @@ struct do_not_use_this_otherwise {
 #endif
 #endif
 #endif
+
+/**********************************************************************************************/
 
 /* This adds the 14 type-generic bit interfaces that are added by
    C23. The use of the other type-specific interfaces is of less
@@ -1141,13 +1245,13 @@ generic_value_type stdc_bit_ceil(generic_value_type value);
     auto s_t_z_x = (__VA_ARGS__);                                              \
     static_assert(isunsigned(s_t_z_x), "bit operation needs unsigned type");   \
     (s_t_z_x) ? _Generic((s_t_z_x),                                            \
-                bool: __builtin_ctz((unsigned)s_t_z_x),                        \
-                unsigned char: __builtin_ctz((unsigned)s_t_z_x),               \
-                unsigned short: __builtin_ctz((unsigned)s_t_z_x),              \
-                unsigned: __builtin_ctz(s_t_z_x),                              \
-                unsigned long: __builtin_ctzl(s_t_z_x),                        \
-                unsigned long long: __builtin_ctzll(s_t_z_x),                  \
-                default: ({                                                    \
+            bool: __builtin_ctz((unsigned)s_t_z_x),                            \
+            unsigned char: __builtin_ctz((unsigned)s_t_z_x),                   \
+            unsigned short: __builtin_ctz((unsigned)s_t_z_x),                  \
+            unsigned: __builtin_ctz(s_t_z_x),                                  \
+            unsigned long: __builtin_ctzl(s_t_z_x),                            \
+            unsigned long long: __builtin_ctzll(s_t_z_x),                      \
+            default: ({                                                        \
                            size_t s_t_z_ret = 0;                               \
                            while (s_t_z_x) {                                   \
                              unsigned long long s_t_z_z = s_t_z_x;             \
@@ -1175,33 +1279,32 @@ generic_value_type stdc_bit_ceil(generic_value_type value);
   ({                                                                           \
     auto s_l_o_x = (__VA_ARGS__);                                              \
     static_assert(isunsigned(s_l_o_x), "bit operation needs unsigned type");   \
-    (s_l_o_x)                                                                  \
-        ? _Generic((s_l_o_x),                                                  \
-          unsigned char: __builtin_clz((unsigned)s_l_o_x) -                    \
-              __builtin_clz((unsigned)tominusone(s_l_o_x)),                    \
-          unsigned short: __builtin_clz((unsigned)s_l_o_x) -                   \
-              __builtin_clz((unsigned)tominusone(s_l_o_x)),                    \
-          unsigned: __builtin_clz(s_l_o_x),                                    \
-          unsigned long: __builtin_clzl(s_l_o_x),                              \
-          unsigned long long: __builtin_clzll(s_l_o_x),                        \
-          default: ((!isxwide(                                                 \
-                        s_l_o_x)) /* Should only trigger for _BitInt types. */ \
-                        ? (__builtin_clzll(s_l_o_x) -                          \
-                           __builtin_clzll(tominusone(                         \
-                               s_l_o_x))) /* determine the long long word with \
-                                             highest 1-bit . */                \
-                        : ({                                                   \
-                            size_t s_l_o_w =                                   \
-                                stdc_count_ones(tominusone(s_l_o_x)) -         \
-                                ULLONG_WIDTH;                                  \
-                            while ((s_l_o_x + 0UL) > ULLONG_MAX) {             \
-                              s_l_o_x = shift_xright(s_l_o_x);                 \
-                              s_l_o_w -= ULLONG_WIDTH;                         \
-                            }                                                  \
-                            __builtin_clzll(s_l_o_x) + s_l_o_w;                \
-                          }))) /* This should resolve to a compile time        \
-                                  constant. */                                 \
-        : stdc_count_ones(tominusone(s_l_o_x));                                \
+    (s_l_o_x) ? _Generic((s_l_o_x),                                            \
+            unsigned char: __builtin_clz((unsigned)s_l_o_x) -                  \
+                __builtin_clz((unsigned)tominusone(s_l_o_x)),                  \
+            unsigned short: __builtin_clz((unsigned)s_l_o_x) -                 \
+                __builtin_clz((unsigned)tominusone(s_l_o_x)),                  \
+            unsigned: __builtin_clz(s_l_o_x),                                  \
+            unsigned long: __builtin_clzl(s_l_o_x),                            \
+            unsigned long long: __builtin_clzll(s_l_o_x),                      \
+            default: ((!isxwide(s_l_o_x)) /* Should only trigger for _BitInt   \
+                                             types. */                         \
+                          ? (__builtin_clzll(s_l_o_x) -                        \
+                             __builtin_clzll(tominusone(                       \
+                                 s_l_o_x))) /* determine the long long word    \
+                                               with highest 1-bit . */         \
+                          : ({                                                 \
+                              size_t s_l_o_w =                                 \
+                                  stdc_count_ones(tominusone(s_l_o_x)) -       \
+                                  ULLONG_WIDTH;                                \
+                              while ((s_l_o_x + 0UL) > ULLONG_MAX) {           \
+                                s_l_o_x = shift_xright(s_l_o_x);               \
+                                s_l_o_w -= ULLONG_WIDTH;                       \
+                              }                                                \
+                              __builtin_clzll(s_l_o_x) + s_l_o_w;              \
+                            }))) /* This should resolve to a compile time      \
+                                    constant. */                               \
+              : stdc_count_ones(tominusone(s_l_o_x));                          \
   })
 
 /* This counts the most significant 1-bits of the specific type of the

@@ -10,5 +10,6 @@ extract from above relevant options
 
 # `gcc.flags` ++ GCC Runtime Mode Options
 -Whardened
+-Wstack-protector
 -fhardened
 -fsanitize=address,leak,undefined

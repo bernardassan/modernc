@@ -35,7 +35,6 @@
 -Wpadded
 -Wredundant-decls
 -Wshadow=global
--Wstack-protector
 -Wstrict-flex-arrays
 -Wstrict-overflow=5
 -Wstrict-prototypes
@@ -63,7 +62,6 @@
 -fdelete-null-pointer-checks
 -fdiagnostics-plain-output
 -fipa-pure-const
--fstack-protector
 -fstrict-aliasing
 -fstrict-flex-arrays=3
 -ftree-vrp

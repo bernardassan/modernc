@@ -13,12 +13,12 @@
 #define MAX_ERRORS 64
 #define MAX_ERRORS_MSG_BUFFER 2048
 
-_Thread_local static char messages_buffer[MAX_ERRORS_MSG_BUFFER];
-_Thread_local static const char *errors_messages_buffer[MAX_ERRORS];
-_Thread_local static int error_messages_code[MAX_ERRORS];
-_Thread_local static size_t errors_count;
-_Thread_local static size_t errors_buffer_len;
-_Thread_local static uint32_t out_of_memory;
+thread_local static char messages_buffer[MAX_ERRORS_MSG_BUFFER];
+thread_local static const char *errors_messages_buffer[MAX_ERRORS];
+thread_local static int error_messages_code[MAX_ERRORS];
+thread_local static size_t errors_count;
+thread_local static size_t errors_buffer_len;
+thread_local static uint32_t out_of_memory;
 
 // end::declarations[]
 

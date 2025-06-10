@@ -91,7 +91,7 @@ int main() {
   // char char *p2 = &sz;
 
   // This is the correct way to create a pointer to an array
-  char(*x [[maybe_unused]])[12] = &sz;
+  char (*x [[maybe_unused]])[12] = &sz;
 
   // Compiling error, can't convert a pointer to 12 elements to a pointer to 10
   // elements char (*y)[10] = &sz; printf("%w32u",swap_words((uint32_t){30}));

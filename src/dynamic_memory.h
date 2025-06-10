@@ -1,6 +1,7 @@
 #ifndef DYNAMIC_MEMORY_H
 #define DYNAMIC_MEMORY_H
 
+#if defined(DYNAMIC_MEMORY_H)
 #include <stddef.h>
 
 // circular: a type for a circular buffer for double values
@@ -24,12 +25,12 @@ circular_append(circular *const circle, double value);
 
 // circular_pop: Remove the oldest element from c and return its value.
 // Returns: the removed element if it exists, 0.0 otherwise.
-[[nodiscard, gnu::nonnull]] double circular_pop(circular *const circle);
+[[nodiscard, gnu::nonnull]] double circular_pop(circular const *circle);
 
 // circular_element: Return a pointer to position pos in buffer c.
 // Returns: a pointer to the pos’ element of the buffer, 0 otherwise.
-[[nodiscard, gnu::nonnull]] double *circular_element(circular *const circle,
-                                                     size_t pos);
+[[nodiscard, gnu::pure, gnu::nonnull]] double const *
+circular_element(circular const *circle, size_t pos);
 
 // circular_destroy: Destroy circular buffer c.
 // c must have been initialized with a call to `circular_init`
@@ -75,4 +76,5 @@ circular_resize(circular *circle, size_t new_max_len);
 
 #define NEW(T, ...) T##_init(malloc(sizeof(T)) __VA_OPT(, ) __VA_ARGS__)
 
+#endif
 #endif // DYNAMIC_MEMORY_H

@@ -74,16 +74,15 @@ saysomething(char const str[]) {
   union Union set_a [[maybe_unused]] = {.a = 32};
 
   const double arr[5] = {
-      [0] = 9.0,
-      [1] = 7.0,
-      [4] = 3.0E+23,
-      [3] = 0.000'07,
-  };
+    [0] = 9.0,
+    [1] = 7.0,
+    [4] = 3.0E+23,
+    [3] = 0.000'07, };
 
-  for (size_t index = 0; index < sizeof(arr) / sizeof(arr[0]); ++index) {
-    printf("elemets %zu is %g,\tits square is %g\n", index, arr[index],
-           arr[index] * arr[index]);
-  }
+    for (size_t index = 0; index < sizeof(arr) / sizeof(arr[0]);
+         ++index){printf("elemets %zu is %g,\tits square is %g\n", index,
+                         arr[index], arr[index] * arr[index]);
+}
 }
 
 static int use_array [[maybe_unused]] () {
@@ -98,7 +97,7 @@ static int use_array [[maybe_unused]] () {
   int arr[3] = {1, 2, 3};
 
   // Call the function with an array of 3 integers
-  int(*result)[3] = return_ptr_to_array_static(arr);
+  int (*result)[3] = return_ptr_to_array_static(arr);
   for (int i = 0; i < 3; i++) {
     printf("%d ", (*result)[i]); // Access the elements of the returned array
   }

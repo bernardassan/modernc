@@ -3,16 +3,13 @@ const Build = std.Build;
 const CSourceFile = Build.Module.CSourceFile;
 const LazyPath = Build.LazyPath;
 const Query = std.Target.Query;
-const Array = std.BoundedArray([]const u8, 128);
+const Array = std.ArrayListUnmanaged([]const u8);
 
+const Translator = @import("translate_c").Translator;
+
+var compile_txt_buf: [128][]const u8 = undefined;
 //TODO: Implement using gcc and or clang when they are available since they offer sanitizer options and static analysis
 pub fn build(b: *std.Build) !void {
-    // Standard target options allows the person running `zig build` to choose
-    // what target to build for. Here we do not override the defaults, which
-    // means any target is allowed, and the default is native. Other options
-    // for restricting supported target set are available.
-
-    const target = b.standardTargetOptions(.{});
     //FIX: error: 'stdbit.h' file not found
     // Musl doesn't implement C23 stdbit.h and gnu 2.39 isn't currently part of zig
     //NOTE: https://github.com/ziglang/zig/issues/19590
@@ -24,60 +21,47 @@ pub fn build(b: *std.Build) !void {
     //         .abi = .musl,
     //     },
     // });
-
-    // Standard release options allow the person running `zig build` to select
-    // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
+    const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+    const translate_c = b.dependency("translate_c", .{
+        .target = target,
+        .optimize = optimize,
+    });
 
-    const exe = b.addExecutable(.{
-        .name = "relearn",
+    const c_translate: Translator = .init(translate_c, .{
+        .c_source_file = b.path("src/c.h"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
+        .link_libc = true,
     });
-    exe.use_llvm = false;
-    exe.use_lld = false;
+    mod.addImport("c", c_translate.mod);
+    mod.addCMacro("_XOPEN_SOURCE", "700");
+    const c_sources = try findCfiles(b.allocator, "src/");
 
-    const c_translate = b.addTranslateC(.{
-        .root_source_file = b.path("src/c.h"),
-        .target = target,
-        .optimize = optimize,
+    var array = Array.initBuffer(&compile_txt_buf);
+    const cflags = loadCompileFlags("compile_flags.txt", &array);
+
+    mod.addCSourceFiles(.{ .files = c_sources, .flags = cflags });
+
+    const exe = b.addExecutable(.{
+        .name = "relearn",
+        .root_module = mod,
+        .use_lld = false,
+        .use_llvm = false,
     });
-
-    exe.root_module.addImport("c", c_translate.createModule());
+    b.installArtifact(exe);
 
     // NOTE: https://man7.org/linux/man-pages/man7/feature_test_macros.7.html
     // https://stackoverflow.com/questions/5378778/what-does-d-xopen-source-do-mean
     // https://pubs.opengroup.org/onlinepubs/9699919799/
-    exe.root_module.addCMacro("_XOPEN_SOURCE", "700");
-    const c_sources = try findCfiles(b.allocator, "src/");
-
-    var array = Array.init(0) catch unreachable;
-    const cflags = loadCompileFlags("compile_flags.txt", &array);
-
-    exe.root_module.addCSourceFiles(.{ .files = c_sources, .flags = cflags });
-
-    const eh = b.addStaticLibrary(.{ .name = "eh", .target = target, .optimize = optimize });
-    eh.use_llvm = false;
-    eh.use_lld = false;
-    eh.root_module.addCMacro("_XOPEN_SOURCE", "700");
-    const eh_source = CSourceFile{
-        .file = b.path("./deps/eh/eh.c"),
-        .flags = cflags,
-    };
-    eh.root_module.addCSourceFile(eh_source);
-    eh.root_module.addIncludePath(b.path("./deps/eh/"));
-    b.installArtifact(eh);
-
-    eh.linkLibC();
-    exe.linkLibrary(eh);
-    exe.linkLibC();
-    b.installArtifact(exe);
-
     switch (optimize) {
         // TODO: set release options
         .ReleaseFast => {
-            eh.root_module.addCMacro("_FORTIFY_SOURCE", "3");
             exe.root_module.addCMacro("_FORTIFY_SOURCE", "3");
         },
         // TODO: enable setting debug options for easy debugin
@@ -92,30 +76,6 @@ pub fn build(b: *std.Build) !void {
 
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
-
-    const exe_tests = b.addTest(.{
-        .root_source_file = b.path("test/test.zig"),
-        .target = target,
-    });
-
-    exe_tests.use_llvm = false;
-    exe_tests.use_lld = false;
-    exe_tests.root_module.addIncludePath(b.path("./deps/snow/snow/"));
-    exe_tests.root_module.addCMacro("_XOPEN_SOURCE", "700");
-    exe_tests.root_module.addCMacro("SNOW_ENABLED", "1");
-    exe_tests.root_module.addImport("c", c_translate.createModule());
-    exe_tests.linkLibrary(eh);
-    const c_test_sources = try findCfiles(
-        b.allocator,
-        "test/",
-    );
-    exe_tests.root_module.addCSourceFiles(.{
-        .files = c_test_sources,
-        .flags = &.{"-std=c2x"},
-    });
-    const run_test = b.addRunArtifact(exe_tests);
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_test.step);
 }
 
 fn loadCompileFlags(comptime path: []const u8, array: *Array) []const []const u8 {
@@ -129,7 +89,7 @@ fn loadCompileFlags(comptime path: []const u8, array: *Array) []const []const u8
         if (line[0] == '#') continue; // A comment
         array.appendAssumeCapacity(line);
     }
-    return array.constSlice();
+    return array.items;
 }
 
 // Search for all C files in `src` and add them

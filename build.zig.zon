@@ -1,0 +1,7 @@
+.{
+    .name = .modernc,
+    .version = "0.15.0-dev.1425+7ee6dab39",
+    .dependencies = .{},
+    .paths = .{""},
+    .fingerprint = 0x9655539d5c4ff9f8,
+}

@@ -1,12 +1,7 @@
 .{
     .name = .modernc,
     .version = "0.15.0-dev.1425+7ee6dab39",
-    .dependencies = .{
-        .translate_c = .{
-            .url = "git+https://github.com/ziglang/translate-c#d0f1bc21a8456bf5acf3ab4cf28607c27cde19a6",
-            .hash = "translate_c-0.0.0-Q_BUWveCBgAzseZyfMxV_u8lBHp5SaWD8HOk8jSr_UtT",
-        },
-    },
+    .dependencies = .{},
     .paths = .{""},
     .fingerprint = 0x9655539d5c4ff9f8,
 }

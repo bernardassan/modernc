@@ -1,3 +1,0 @@
-[submodule "deps/snow"]
-	path = deps/snow
-	url = git@github.com:mortie/snow.git

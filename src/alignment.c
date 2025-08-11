@@ -32,8 +32,8 @@ int main() {
   } toocomplex = {
       .val =
           {
-              0.5 + 0.5 * I,
-              0.75 + 0.75 * I,
+              0.5 + (0.5 * I),
+              0.75 + (0.75 * I),
           },
   };
   printf("size/alignment: %zu/%zu\n", sizeof(cdbl), alignof(cdbl));

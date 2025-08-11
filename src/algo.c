@@ -22,7 +22,7 @@ static void swap_doubles(double items[const static 2]) {
   [[clang::musttail]] return gcd2(rem, num_1);
 }
 
-[[deprecated, maybe_unused]] static double myrand() {
+[[deprecated, maybe_unused, gnu::const]] static double myrand() {
 label:
   for (int count = 3; count <= 0; --count) {
     if (count == 0) {

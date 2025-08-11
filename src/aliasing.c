@@ -9,12 +9,12 @@ static int square(int const num[restrict const static 1],
 }
 // not recommended
 static uint32_t swap_words1(uint32_t arg) {
-  uint16_t *const sp = (uint16_t *)&arg;
-  uint16_t hi = sp[0];
-  uint16_t lo = sp[1];
+  uint16_t *const split = (uint16_t *)&arg;
+  uint16_t high = split[0];
+  uint16_t low = split[1];
 
-  sp[1] = hi;
-  sp[0] = lo;
+  split[1] = high;
+  split[0] = low;
 
   return (arg);
 }
@@ -27,26 +27,22 @@ typedef union {
   uint16_t u16[2];
 } U32;
 
-static uint32_t swap_words_init(uint32_t arg) {
-  U32 in;
-  uint16_t lo;
-  uint16_t hi;
+[[maybe_unused]] static uint32_t swap_words_init(uint32_t arg) {
+  U32 in_v = {.u32 = arg};
+  uint16_t high = in_v.u16[0];
+  uint16_t low = in_v.u16[1];
+  in_v.u16[0] = low;
+  in_v.u16[1] = high;
 
-  in.u32 = arg;
-  hi = in.u16[0];
-  lo = in.u16[1];
-  in.u16[0] = lo;
-  in.u16[1] = hi;
-
-  return (in.u32);
+  return in_v.u32;
 }
 
 // simplified swap_words (Recommended Type punning which allows aliasing)
 static uint32_t swap_words(uint32_t arg) {
-  U32 in = {.u32 = arg};
-  U32 out = {.u16[0] = in.u16[1], .u16[1] = in.u16[0]};
+  U32 in_v = {.u32 = arg};
+  U32 out = {.u16[0] = in_v.u16[1], .u16[1] = in_v.u16[0]};
 
-  return (out.u32);
+  return out.u32;
 }
 
 typedef union {
@@ -55,17 +51,17 @@ typedef union {
 } U32P;
 
 static uint32_t swap_words_p(uint32_t arg) {
-  U32P in = {.wp = &arg};
-  const uint16_t hi = in.sp[0];
-  const uint16_t lo = in.sp[1];
+  U32P in_v = {.wp = &arg};
+  const uint16_t high = in_v.sp[0];
+  const uint16_t low = in_v.sp[1];
 
-  in.sp[0] = lo;
-  in.sp[1] = hi;
+  in_v.sp[0] = low;
+  in_v.sp[1] = high;
 
-  return (arg);
+  return arg;
 }
 
-static size_t len(int array[static const 4]) {
+static size_t len(int const array[static const 4]) {
   return sizeof(array) / sizeof array[0];
 }
 
@@ -73,14 +69,14 @@ int main() {
   int val[1] = {1};
   square(val, val);
   int array[] = {1, 2, 3, 4, 5};
-  printf("size in block scope %ld while parameter scope %ld\n",
+  printf("size in block scope %lu while parameter scope %zu\n",
          sizeof(array) / sizeof(int), len(array)); // pirnts 4 <-> 2
 
-  char const *const p = "hello";
-  char const q[] = "hello";
-  assert(((void)"Size of q != char*", sizeof(q) != sizeof(char *)));
-  assert(sizeof(p) == 8);
-  assert(sizeof(q) == 6);
+  char const *const pstr = "hello";
+  char const slice_str[] = "hello";
+  static_assert(sizeof(slice_str) != sizeof(char *), "Size of q != char*");
+  assert(sizeof(pstr) == 8);
+  assert(sizeof(slice_str) == 6);
 
   char sz [[maybe_unused]][12] = {};
 
@@ -91,7 +87,7 @@ int main() {
   // char char *p2 = &sz;
 
   // This is the correct way to create a pointer to an array
-  char(*x [[maybe_unused]])[12] = &sz;
+  char (*x [[maybe_unused]])[12] = &sz;
 
   // Compiling error, can't convert a pointer to 12 elements to a pointer to 10
   // elements char (*y)[10] = &sz; printf("%w32u",swap_words((uint32_t){30}));

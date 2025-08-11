@@ -23,7 +23,8 @@ static size_t circular_getpos(circular const *const circle, size_t pos) {
   return pos;
 }
 
-double *circular_element(circular *const circle, size_t pos) {
+[[nodiscard, gnu::pure, gnu::nonnull]] double const *
+circular_element(circular const *circle, size_t pos) {
   assert(pos < circle->max_len);
 
   pos = circular_getpos(circle, pos);
@@ -57,7 +58,7 @@ circular *circular_resize(circular *circle, size_t new_max_len) {
 
 circular *circular_new(size_t len) {
   circular *new_circle =
-      calloc(1UL, sizeof(*new_circle) + sizeof(typeof(*new_circle->tab)[len]));
+      calloc(1UL, sizeof(*new_circle) + sizeof(typeof (*new_circle->tab)[len]));
   if (!new_circle) {
     err(EXIT_FAILURE, "%s", "couldn't allocate a new circle");
   }

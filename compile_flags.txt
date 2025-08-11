@@ -8,6 +8,7 @@
 -Wno-c++98-compat
 -Wno-declaration-after-statement
 -Wno-pre-c2x-compat
+-Wno-pre-c2y-compat
 -Wno-switch-default
 -Wno-unsafe-buffer-usage
 -Wno-used-but-marked-unused

@@ -24,7 +24,7 @@ pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
 
     const c_translate = b.addTranslateC(.{
-        .root_source_file = b.path("src/c.h"),
+        .root_source_file = b.path("src/c_lib.h"),
         .optimize = optimize,
         .target = target,
         .use_clang = true,

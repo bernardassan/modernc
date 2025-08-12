@@ -15,38 +15,12 @@ typedef enum Weekends {
   Sunday,
 } Weekends;
 
-typedef struct birds {
-  char const *jay;
-  char const *magpie;
-  char const *raven;
-  char const *chough;
-} Birds;
-
-static void literals();
-static void use_choose();
-static void switching(Weekends const day);
-extern void enumerations();
-
-static Birds const bird [[maybe_unused]] = {
-    .jay = "jay",
-    .magpie = "magpie",
-    .raven = "raven",
-    .chough = "chough",
-};
-
 enum corvid : uint8_t {
   chough,
   magpie,
   raven,
   jay,
   corvid_num,
-};
-
-static char const *const birdie [[maybe_unused]][corvid_num] = {
-    [chough] = "chough",
-    [raven] = "raven",
-    [magpie] = "magpie",
-    [jay] = "jay",
 };
 
 // BUG: Takeaway 5.6.5
@@ -59,7 +33,12 @@ static constexpr char CORVID_NAME[corvid_num][8] = {
     [jay] = "jay",
 };
 
-void enumerations() {
+static void literals();
+static void use_choose();
+static void switching(Weekends const day);
+extern void cMain();
+
+void cMain() {
   for (size_t index = 0; index < corvid_num; ++index) {
     printf("Corvid %zu is the %s\n", index, CORVID_NAME[index]);
   }
@@ -67,6 +46,27 @@ void enumerations() {
   use_choose();
   switching(Sunday);
 }
+
+typedef struct birds {
+  char const *jay;
+  char const *magpie;
+  char const *raven;
+  char const *chough;
+} Birds;
+
+static Birds const bird [[maybe_unused]] = {
+    .jay = "jay",
+    .magpie = "magpie",
+    .raven = "raven",
+    .chough = "chough",
+};
+
+static char const *const birdie [[maybe_unused]][corvid_num] = {
+    [chough] = "chough",
+    [raven] = "raven",
+    [magpie] = "magpie",
+    [jay] = "jay",
+};
 
 enum vehicle { bus, airplane, train, car, horse, feet };
 

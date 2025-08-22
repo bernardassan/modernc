@@ -149,7 +149,7 @@
 
 /* A simple type-generic conditional. */
 #define GENERIC_IF(COND, A, B)                                                 \
-  _Generic((char(*)[1 + !!(COND)])0, char(*)[2]: (A), default: (B))
+  _Generic((char (*)[1 + !!(COND)])0, char (*)[2]: (A), default: (B))
 
 /* clang has a set of feature tests that are quite comfortable,
 

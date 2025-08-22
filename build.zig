@@ -3,7 +3,7 @@ const Build = std.Build;
 const LazyPath = Build.LazyPath;
 const Query = std.Target.Query;
 
-const CompileFlags = std.ArrayListUnmanaged([]const u8);
+const CompileFlags = std.ArrayList([]const u8);
 
 const max_compile_flags = 24;
 
@@ -78,7 +78,7 @@ fn findCfiles(b: *Build, src: []const u8) ![]const []const u8 {
     var walker = try dir.walk(b.allocator);
     defer walker.deinit();
 
-    var sources = std.ArrayList([]const u8).init(b.allocator);
+    var sources: std.ArrayList([]const u8) = .empty;
 
     const allowed_exts = [_][]const u8{".c"};
     while (try walker.next()) |entry| {
@@ -89,7 +89,7 @@ fn findCfiles(b: *Build, src: []const u8) ![]const []const u8 {
         } else false;
         if (include_file) {
             // we have to clone the path as walker.next() or walker.deinit() will override/kill it
-            try sources.append(b.fmt("{[src]s}/{[path]s}", .{ .src = src, .path = entry.path }));
+            try sources.append(b.allocator, b.fmt("{[src]s}/{[path]s}", .{ .src = src, .path = entry.path }));
         }
     }
 
